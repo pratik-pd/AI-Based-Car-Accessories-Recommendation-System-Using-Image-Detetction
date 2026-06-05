@@ -42,6 +42,11 @@ function Login() {
         JSON.stringify(response.data)
       );
 
+      localStorage.setItem(
+        "user_id",
+        response.data.token
+      );
+
       alert("Login Successful");
 
       navigate("/home");

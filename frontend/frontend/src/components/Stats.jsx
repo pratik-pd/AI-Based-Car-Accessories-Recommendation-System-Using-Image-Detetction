@@ -9,12 +9,12 @@ function Stats() {
 
     {
       number: "98%",
-      label: "AI Accuracy"
+      label: "Detection Accuracy"
     },
 
     {
       number: "5K+",
-      label: "Happy Users"
+      label: "Users"
     },
 
     {
@@ -26,34 +26,37 @@ function Stats() {
 
   return (
 
-    <div className="bg-[#0f0f0f] py-20 px-6">
+    <section className="py-24 bg-[#0b0b0b]">
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto px-6">
 
-        {stats.map((item, index) => (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
 
-          <div
-            key={index}
-            className="bg-[#181818] border border-gray-800 rounded-3xl p-8 text-center"
-          >
+          {stats.map((item, index) => (
 
-            <h1 className="text-4xl font-black text-orange-500">
-              {item.number}
-            </h1>
+            <div
+              key={index}
+              className="bg-[#141414] rounded-3xl border border-gray-800 p-10 text-center hover:border-orange-500 transition duration-500"
+            >
 
-            <p className="text-gray-400 mt-3">
-              {item.label}
-            </p>
+              <h1 className="text-5xl font-black bg-gradient-to-r from-orange-500 to-yellow-400 text-transparent bg-clip-text">
+                {item.number}
+              </h1>
 
-          </div>
+              <p className="text-gray-400 mt-4">
+                {item.label}
+              </p>
 
-        ))}
+            </div>
+
+          ))}
+
+        </div>
 
       </div>
 
-    </div>
+    </section>
   );
 }
 
 export default Stats;
-

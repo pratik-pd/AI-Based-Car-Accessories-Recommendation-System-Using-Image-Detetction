@@ -1,75 +1,72 @@
-function AnalyticsCards({
+import {
+  BadgeCheck,
+  IndianRupee,
+  Car,
+  Activity,
+} from "lucide-react";
 
+function AnalyticsCards({
   brand,
   repairCost,
   vehicleHealth,
   confidence,
-
 }) {
 
-  return (
+  const cards = [
+    {
+      title: "AI Confidence",
+      value: confidence || "95%",
+      icon: <BadgeCheck />,
+      color: "text-orange-500",
+    },
+    {
+      title: "Vehicle Brand",
+      value: brand || "Unknown",
+      icon: <Car />,
+      color: "text-red-400",
+    },
+    {
+      title: "Repair Cost",
+      value: repairCost || "₹0",
+      icon: <IndianRupee />,
+      color: "text-green-400",
+    },
+    {
+      title: "Vehicle Health",
+      value: vehicleHealth || "100%",
+      icon: <Activity />,
+      color: "text-cyan-400",
+    },
+  ];
 
+  return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
 
-      {/* CONFIDENCE */}
+      {cards.map((item, index) => (
 
-      <div className="bg-[#161616] p-6 rounded-[25px] border border-gray-800">
+        <div
+          key={index}
+          className="bg-[#161616] border border-gray-800 rounded-3xl p-6 hover:border-orange-500 hover:-translate-y-2 transition-all duration-300"
+        >
 
-        <p className="text-gray-400">
-          AI Confidence
-        </p>
+          <div className={`${item.color} mb-4`}>
+            {item.icon}
+          </div>
 
-        <h2 className="text-3xl font-black text-orange-500 mt-4">
-          {confidence}
-        </h2>
+          <p className="text-gray-400">
+            {item.title}
+          </p>
 
-      </div>
+          <h2 className={`text-3xl font-black mt-4 ${item.color}`}>
+            {item.value}
+          </h2>
 
-      {/* BRAND */}
+        </div>
 
-      <div className="bg-[#161616] p-6 rounded-[25px] border border-gray-800">
-
-        <p className="text-gray-400">
-          Vehicle Brand
-        </p>
-
-        <h2 className="text-3xl font-black text-red-400 mt-4">
-          {brand}
-        </h2>
-
-      </div>
-
-      {/* REPAIR COST */}
-
-      <div className="bg-[#161616] p-6 rounded-[25px] border border-gray-800">
-
-        <p className="text-gray-400">
-          Repair Cost
-        </p>
-
-        <h2 className="text-3xl font-black text-green-400 mt-4">
-          {repairCost}
-        </h2>
-
-      </div>
-
-      {/* HEALTH */}
-
-      <div className="bg-[#161616] p-6 rounded-[25px] border border-gray-800">
-
-        <p className="text-gray-400">
-          Vehicle Health
-        </p>
-
-        <h2 className="text-3xl font-black text-cyan-400 mt-4">
-          {vehicleHealth}
-        </h2>
-
-      </div>
+      ))}
 
     </div>
   );
 }
 
 export default AnalyticsCards;
-

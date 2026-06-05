@@ -36,7 +36,7 @@ function Signup() {
 
       alert("Account Created Successfully");
 
-      navigate("/home");
+      navigate("/");
       // window.location.href = "/";
 
     } catch (error) {

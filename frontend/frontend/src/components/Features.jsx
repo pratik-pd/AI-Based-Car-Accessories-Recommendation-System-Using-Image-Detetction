@@ -1,63 +1,85 @@
+import {
+  Cpu,
+  ShieldCheck,
+  Wrench,
+  Zap,
+} from "lucide-react";
+
 function Features() {
 
   const features = [
 
     {
+      icon: <Cpu size={40} />,
       title: "AI Vehicle Detection",
-      desc: "Detect cars, bikes, buses and trucks using AI."
+      desc: "Advanced YOLOv8 powered vehicle recognition with real-time object detection."
     },
 
     {
-      title: "Damage Analysis",
-      desc: "AI checks scratches, dents and body damage."
+      icon: <ShieldCheck size={40} />,
+      title: "Damage Assessment",
+      desc: "Analyze dents, scratches and external damage with intelligent AI reports."
     },
 
     {
-      title: "Smart Recommendations",
-      desc: "Get accessories and maintenance suggestions."
+      icon: <Wrench size={40} />,
+      title: "Repair Estimation",
+      desc: "Get repair recommendations, maintenance tips and replacement suggestions."
     },
 
     {
-      title: "Fast Processing",
-      desc: "Get vehicle reports within seconds."
+      icon: <Zap size={40} />,
+      title: "Instant Results",
+      desc: "Generate complete vehicle health reports within seconds."
     }
 
   ];
 
   return (
 
-    <div className="w-full px-6 py-20 bg-black">
+    <section className="py-28 px-6 bg-gradient-to-b from-black to-[#0d0d0d]">
 
-      <h1 className="text-4xl font-black text-white text-center">
-        Features
-      </h1>
+      <div className="max-w-7xl mx-auto">
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-14">
+        <h1 className="text-center text-5xl font-black mb-4">
+          Why Choose Us
+        </h1>
 
-        {features.map((item, index) => (
+        <p className="text-center text-gray-400 max-w-2xl mx-auto">
+          Next generation AI powered vehicle inspection platform.
+        </p>
 
-          <div
-            key={index}
-            className="bg-[#161616] border border-gray-800 rounded-3xl p-6 hover:border-orange-500 transition-all duration-300"
-          >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-16">
 
-            <h2 className="text-2xl font-bold text-orange-500">
-              {item.title}
-            </h2>
+          {features.map((item, index) => (
 
-            <p className="text-gray-400 mt-4 leading-relaxed">
-              {item.desc}
-            </p>
+            <div
+              key={index}
+              className="group bg-[#111111] border border-gray-800 p-8 rounded-3xl hover:border-orange-500 hover:-translate-y-3 transition-all duration-500"
+            >
 
-          </div>
+              <div className="text-orange-500 mb-6">
+                {item.icon}
+              </div>
 
-        ))}
+              <h2 className="text-2xl font-bold">
+                {item.title}
+              </h2>
+
+              <p className="text-gray-400 mt-4 leading-relaxed">
+                {item.desc}
+              </p>
+
+            </div>
+
+          ))}
+
+        </div>
 
       </div>
 
-    </div>
+    </section>
   );
 }
 
 export default Features;
-

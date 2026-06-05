@@ -10,260 +10,346 @@ import AIInsights from "./AIInsights";
 import Accessories from "./Accessories";
 
 function UploadBox() {
+const [file, setFile] = useState(null);
+const [preview, setPreview] = useState(null);
 
-  const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState(null);
-  const [loading, setLoading] = useState(false);
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState("");
 
-  const [prediction, setPrediction] = useState("");
-  const [confidence, setConfidence] = useState("");
+const [scanStatus, setScanStatus] = useState("");
+const [analysisTime, setAnalysisTime] = useState("");
 
-  const [recommendations, setRecommendations] = useState([]);
+const [prediction, setPrediction] = useState("");
+const [confidence, setConfidence] = useState("");
 
-  const [vehicleCategory, setVehicleCategory] = useState("");
-  const [vehicleUsage, setVehicleUsage] = useState("");
+const [recommendations, setRecommendations] = useState([]);
 
-  const [brand, setBrand] = useState("");
-  const [scanType, setScanType] = useState("");
-  const [damageStatus, setDamageStatus] = useState("");
-  const [damageLevel, setDamageLevel] = useState("");
-  const [replacementNeeded, setReplacementNeeded] = useState("");
+const [brand, setBrand] = useState("");
 
-  const [aiSummary, setAiSummary] = useState("");
-  const [vehicleHealth, setVehicleHealth] = useState("");
-  const [repairCost, setRepairCost] = useState("");
-  const [aiInsights, setAiInsights] = useState([]);
+const [damageLevel, setDamageLevel] = useState("");
+const [replacementNeeded, setReplacementNeeded] = useState("");
 
-  const handleImage = (e) => {
+const [aiSummary, setAiSummary] = useState("");
+const [vehicleHealth, setVehicleHealth] = useState("");
+const [repairCost, setRepairCost] = useState("");
+const [aiInsights, setAiInsights] = useState([]);
 
-    const selectedFile = e.target.files[0];
+const [allDetections, setAllDetections] = useState([]);
+const [predictionImage, setPredictionImage] = useState("");
 
-    if (selectedFile) {
+const handleImage = (e) => {
+const selectedFile = e.target.files[0];
 
-      setFile(selectedFile);
 
-      setPreview(URL.createObjectURL(selectedFile));
+if (selectedFile) {
+  setFile(selectedFile);
+  setPreview(URL.createObjectURL(selectedFile));
 
-      setPrediction("");
-      setConfidence("");
-      setRecommendations([]);
-    }
-  };
+  setPrediction("");
+  setConfidence("");
+  setRecommendations([]);
+  setAllDetections([]);
+  setError("");
+}
 
-  const analyzeCar = async () => {
 
-    if (!file) {
-      alert("Please upload image first");
-      return;
-    }
+};
 
-    setLoading(true);
+const analyzeCar = async () => {
+if (!file) {
+setError("Please upload an image first.");
+return;
+}
 
-    const formData = new FormData();
 
-    formData.append("image", file);
+setLoading(true);
+setError("");
 
-    try {
+const formData = new FormData();
+formData.append("image", file);
 
-      const response = await axios.post(
-        "http://127.0.0.1:5000/predict",
-        formData
-      );
-      console.log(response.data)
+formData.append("user_id", localStorage.getItem("user_id"));
 
-      if (!response.data.success) {
+try {
+  setScanStatus("Uploading Image...");
 
-        alert(response.data.message);
+  const response = await axios.post(
+    "http://127.0.0.1:5000/predict",
+    formData
+  );
 
-        setLoading(false);
-
-        return;
-      }
-
-      const aiPrediction = response.data.prediction || "Unknown";
-
-      const aiConfidence = response.data.confidence
-        ? `${response.data.confidence}%`
-        : "95%";
-
-      setPrediction(aiPrediction);
-      setConfidence(aiConfidence);
-
-      setBrand(response.data.brand);
-      setScanType(response.data.scan_type);
-
-      setDamageStatus(response.data.damage_status);
-      setDamageLevel(response.data.damage_level);
-
-      setReplacementNeeded(response.data.replacement_needed);
-
-      setAiSummary(response.data.ai_summary);
-
-      setVehicleHealth(response.data.vehicle_health);
-
-      setRepairCost(response.data.repair_cost);
-
-      setAiInsights(response.data.ai_insights);
-
-      let accessories = [];
-
-      let category = "";
-      let usage = "";
-
-      if (
-        aiPrediction.toLowerCase().includes("suv")
-      ) {
-
-        category = "SUV Vehicle";
-
-        usage = "Adventure Driving";
-
-        accessories = [
-
-          {
-            name: "Roof Rails",
-            price: "₹5,499",
-            rating: "4.6",
-            image:
-              "https://images.unsplash.com/photo-1503736334956-4c8f8e92946d",
-            link: "https://www.amazon.in/",
-          },
-
-          {
-            name: "Fog Lamps",
-            price: "₹2,999",
-            rating: "4.5",
-            image:
-              "https://images.unsplash.com/photo-1549399542-7e3f8b79c341",
-            link: "https://www.amazon.in/",
-          },
-
-          {
-            name: "Bull Bar",
-            price: "₹7,999",
-            rating: "4.7",
-            image:
-              "https://images.unsplash.com/photo-1494976388531-d1058494cdd8",
-            link: "https://www.amazon.in/",
-          },
-
-          {
-            name: "Off Road Tires",
-            price: "₹18,999",
-            rating: "4.9",
-            image:
-              "https://images.unsplash.com/photo-1517524206127-48bbd363f3aa",
-            link: "https://www.amazon.in/",
-          },
-        ];
-
-      } else {
-
-        category = "Family Vehicle";
-
-        usage = "Daily Commute";
-
-        accessories = [
-
-          {
-            name: "Seat Covers",
-            price: "₹2,999",
-            rating: "4.5",
-            image:
-              "https://images.unsplash.com/photo-1493238792000-8113da705763",
-            link: "https://www.amazon.in/",
-          },
-
-          {
-            name: "Android Display",
-            price: "₹8,999",
-            rating: "4.8",
-            image:
-              "https://images.unsplash.com/photo-1502877338535-766e1452684a",
-            link: "https://www.amazon.in/",
-          },
-
-          {
-            name: "Reverse Camera",
-            price: "₹2,499",
-            rating: "4.4",
-            image:
-              "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b",
-            link: "https://www.amazon.in/",
-          },
-
-          {
-            name: "Luxury Floor Mats",
-            price: "₹1,999",
-            rating: "4.3",
-            image:
-              "https://images.unsplash.com/photo-1504215680853-026ed2a45def",
-            link: "https://www.amazon.in/",
-          },
-        ];
-      }
-
-      setRecommendations(accessories);
-
-      setVehicleCategory(category);
-
-      setVehicleUsage(usage);
-
-    } catch (error) {
-
-      console.log(error);
-
-      alert("Backend Error");
-    }
-
+  if (!response.data.success) {
+    setError(response.data.message);
     setLoading(false);
-  };
+    return;
+  }
 
-  return (
+  setScanStatus("Generating AI Report...");
 
-    <div className="w-full max-w-[1400px] mx-auto mt-10 px-4">
+  const aiPrediction =
+    response.data.prediction || "Unknown";
 
-      <div className="bg-[#111111] border border-gray-800 rounded-[30px] p-8 shadow-2xl">
+  const aiConfidence =
+    response.data.confidence || 95;
 
-        <UploadSection
-          handleImage={handleImage}
-          preview={preview}
-          analyzeCar={analyzeCar}
-          loading={loading}
+  setPrediction(aiPrediction);
+  setConfidence(aiConfidence);
+
+  setBrand(response.data.brand);
+
+  setAllDetections(
+    response.data.all_detections || []
+  );
+
+  setDamageLevel(
+    response.data.damage_level
+  );
+
+  setReplacementNeeded(
+    response.data.replacement_needed
+  );
+
+  setAiSummary(
+    response.data.ai_summary
+  );
+
+  setVehicleHealth(
+    response.data.vehicle_health
+  );
+
+  setRepairCost(
+    response.data.repair_cost
+  );
+
+  setAiInsights(
+    response.data.ai_insights || []
+  );
+
+  setAnalysisTime(
+    new Date().toLocaleString()
+  );
+
+  setPredictionImage(
+    response.data.prediction_image 
+  );
+
+  let accessories = [];
+
+  accessories = [
+    {
+      id: 1,
+      name: "Premium Leather Seat Cover",
+      price: 2999,
+      rating: 4.8,
+      image: "/products/seatcover.jpg",
+    },
+    {
+      id: 2,
+      name: "Android Display",
+      price: 8999,
+      rating: 4.8,
+      image:
+        "https://images.unsplash.com/photo-1502877338535-766e1452684a",
+    },
+    {
+      id: 3,
+      name: "Reverse Camera",
+      price: 2499,
+      rating: 4.4,
+      image:
+        "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b",
+    },
+    {
+      id: 4,
+      name: "Luxury Floor Mats",
+      price: 1999,
+      rating: 4.3,
+      image:
+        "https://images.unsplash.com/photo-1504215680853-026ed2a45def",
+    },
+  ];
+
+  setRecommendations(accessories);
+
+  setScanStatus("Analysis Completed");
+} catch (error) {
+  console.log(error);
+
+  setError(
+    "Failed to connect with AI server."
+  );
+
+  setScanStatus("");
+}
+
+setLoading(false);
+
+
+};
+
+
+// DOWNLOAD PDF REPORT
+
+const downloadReport = async () => {
+  try {
+
+    const response = await axios.post(
+      "http://127.0.0.1:5000/generate-report",
+      {
+        prediction,
+        confidence,
+        damageLevel,
+        vehicleHealth,
+        repairCost,
+        replacementNeeded,
+      }
+    );
+
+    const link = document.createElement("a");
+
+    link.href = response.data.pdf_url;
+
+    link.download = "AI_Damage_Report.pdf";
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+  } catch (error) {
+
+    console.log(error);
+
+    alert("Failed to generate PDF");
+
+  }
+};
+
+const sendEmailReport = async () => {
+
+  const email = prompt("Enter Email Address");
+
+  if (!email) return;
+
+  try {
+    const response = await axios.post(
+      "http://127.0.0.1:5000/send-report-email",
+      {
+        email,
+      }
+    );
+    alert(response.data.message);
+  } catch (error) {
+    console.log(error);
+    alert("Failed to send email");
+  }
+};
+
+return ( <div className="w-full max-w-[1400px] mx-auto mt-10 px-4"> <div className="bg-[#111111] border border-gray-800 rounded-[30px] p-8 shadow-2xl">
+
+
+    <UploadSection
+      handleImage={handleImage}
+      preview={preview}
+      analyzeCar={analyzeCar}
+      loading={loading}
+      predictionImage={predictionImage}
+    />
+
+    {scanStatus && (
+      <div className="mt-4 text-center text-orange-400 font-medium">
+        {scanStatus}
+      </div>
+    )}
+
+    {error && (
+      <div className="mt-4 bg-red-500/10 border border-red-500 text-red-400 p-4 rounded-xl text-center">
+        {error}
+      </div>
+    )}
+
+    {analysisTime && (
+      <div className="mt-4 text-center text-gray-400 text-sm">
+        Last Analysis: {analysisTime}
+      </div>
+    )}
+
+    {prediction && (
+      <>
+        <ResultCard
+          prediction={prediction}
+          confidence={confidence}
+          allDetections={allDetections}
+        />
+       
+
+        <AnalyticsCards
+          repairCost={repairCost}
+          vehicleHealth={vehicleHealth}
+          brand={brand}
+          confidence={confidence}
         />
 
-        {prediction && (
-          <>
-            <ResultCard
-              prediction={prediction}
-              confidence={confidence}
-            />
+        <AISummary
+          aiSummary={aiSummary}
+        />
 
-            <AnalyticsCards
-              repairCost={repairCost}
-              vehicleHealth={vehicleHealth}
-              vehicleCategory={vehicleCategory}
-              vehicleUsage={vehicleUsage}
-              brand={brand}
-            />
+        <AIInsights
+          aiInsights={aiInsights}
+        />
 
-            <AISummary aiSummary={aiSummary} />
+        <AIReport
+          damageLevel={damageLevel}
+          replacementNeeded={
+            replacementNeeded
+          }
+        />
 
-            <AIInsights aiInsights={aiInsights} />
-
-            <AIReport
-              damageLevel={damageLevel}
-              replacementNeeded={replacementNeeded}
-            />
-
-            <Accessories recommendations={recommendations} />
-          </>
-        )}
-
+      <div className="mt-8 text-center">
+        <button
+         onClick={downloadReport}
+          className="
+          px-8
+          py-4
+          rounded-2xl
+        bg-green-600
+        hover:bg-green-700
+          font-bold
+          transition
+          "
+        >
+       Download AI Report PDF
+        </button>
       </div>
 
-    </div>
-  );
+       <button
+        onClick={sendEmailReport}
+        className="
+        ml-4
+        px-8
+        py-4
+        rounded-2xl
+      bg-blue-600
+      hover:bg-blue-700
+        font-bold
+        "
+       >
+       Email Report
+      </button>
+
+        <Accessories
+          recommendations={
+            recommendations
+          }
+        />
+      </>
+    )}
+  </div>
+</div>
+
+
+);
 }
 
 export default UploadBox;

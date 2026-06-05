@@ -1,0 +1,30 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Node modules
+node_modules/
+
+# Local databases
+backend/instance/
+
+# Datasets (large files, should not go to GitHub)
+backend/dataset/
+backend/dataset_yolo/
+backend/coco_converted/
+
+# YOLO training runs (checkpoints & logs)
+backend/runs/
+
+# Flask static folder files (generated uploads/PDFs)
+backend/static/*.jpg
+backend/static/*.pdf
+
+# Local environment files
+.env

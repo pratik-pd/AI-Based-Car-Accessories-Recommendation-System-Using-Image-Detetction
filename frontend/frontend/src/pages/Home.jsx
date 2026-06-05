@@ -1,36 +1,36 @@
-import Navbar from "../components/Navbar";
-import Hero from "../components/Hero";
-import Features from "../components/Features";
-import Stats from "../components/Stats";
-import UploadBox from "../components/UploadBox";
-import Testimonials from "../components/Testimonials";
-import Footer from "../components/Footer";
+  import Navbar from "../components/Navbar";
+  import Hero from "../components/Hero";
+  import Features from "../components/Features";
+  import Stats from "../components/Stats";
+  // import UploadBox from "../components/UploadBox";
+  import Testimonials from "../components/Testimonials";
+  import Footer from "../components/Footer";
 
-function Home() {
-  return (
-    <div className="bg-black min-h-screen text-white overflow-hidden">
+  function Home() {
+    return (
+      <div className="bg-black min-h-screen text-white pt-24">
 
-      {/* NAVBAR */}
-      <Navbar />
+        {/* NAVBAR */}
+        <Navbar />
 
-      {/* HERO */}
-      <Hero />
+        {/* HERO */}
+        <Hero />
 
-      <Features/>
+        <Features/>
 
-      <Stats/>
+        <Stats/>
 
-      {/* AI ANALYZER */}
-      <UploadBox />
+        {/* AI ANALYZER */}
+        {/* <UploadBox /> */}
 
-      <Testimonials/>
+        <Testimonials/>
 
-      <Footer/>
+        <Footer/>
 
 
 
-    </div>
-  );
-}
+      </div>
+    );
+  }
 
-export default Home;
+  export default Home;
