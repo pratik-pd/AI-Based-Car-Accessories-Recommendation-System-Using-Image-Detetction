@@ -1,70 +1,72 @@
-import {
-  BadgeCheck,
-  IndianRupee,
-  Car,
-  Activity,
-} from "lucide-react";
+import { BadgeCheck, IndianRupee, Car, Activity } from "lucide-react";
 
-function AnalyticsCards({
-  brand,
-  repairCost,
-  vehicleHealth,
-  confidence,
-}) {
+const cardConfig = [
+  {
+    key: "confidence",
+    title: "AI Confidence",
+    icon: BadgeCheck,
+    color: "text-orange-400",
+    bg: "bg-orange-500/10",
+    border: "border-orange-500/20",
+    glow: "hover:shadow-orange-500/10",
+  },
+  {
+    key: "brand",
+    title: "Vehicle Brand",
+    icon: Car,
+    color: "text-blue-400",
+    bg: "bg-blue-500/10",
+    border: "border-blue-500/20",
+    glow: "hover:shadow-blue-500/10",
+  },
+  {
+    key: "repairCost",
+    title: "Est. Repair Cost",
+    icon: IndianRupee,
+    color: "text-green-400",
+    bg: "bg-green-500/10",
+    border: "border-green-500/20",
+    glow: "hover:shadow-green-500/10",
+  },
+  {
+    key: "vehicleHealth",
+    title: "Vehicle Health",
+    icon: Activity,
+    color: "text-cyan-400",
+    bg: "bg-cyan-500/10",
+    border: "border-cyan-500/20",
+    glow: "hover:shadow-cyan-500/10",
+  },
+];
 
-  const cards = [
-    {
-      title: "AI Confidence",
-      value: confidence || "95%",
-      icon: <BadgeCheck />,
-      color: "text-orange-500",
-    },
-    {
-      title: "Vehicle Brand",
-      value: brand || "Unknown",
-      icon: <Car />,
-      color: "text-red-400",
-    },
-    {
-      title: "Repair Cost",
-      value: repairCost || "₹0",
-      icon: <IndianRupee />,
-      color: "text-green-400",
-    },
-    {
-      title: "Vehicle Health",
-      value: vehicleHealth || "100%",
-      icon: <Activity />,
-      color: "text-cyan-400",
-    },
-  ];
+function AnalyticsCards({ brand, repairCost, vehicleHealth, confidence }) {
+  const values = {
+    confidence: confidence ? `${confidence}%` : "N/A",
+    brand: brand || "Unknown",
+    repairCost: repairCost || "N/A",
+    vehicleHealth: vehicleHealth || "N/A",
+  };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
-
-      {cards.map((item, index) => (
-
-        <div
-          key={index}
-          className="bg-[#161616] border border-gray-800 rounded-3xl p-6 hover:border-orange-500 hover:-translate-y-2 transition-all duration-300"
-        >
-
-          <div className={`${item.color} mb-4`}>
-            {item.icon}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {cardConfig.map((card, index) => {
+        const Icon = card.icon;
+        return (
+          <div
+            key={index}
+            className={`glass rounded-[20px] p-6 border ${card.border} hover:-translate-y-2 transition-all duration-400 hover:shadow-xl ${card.glow} animate-fade-in-up`}
+            style={{ animationDelay: `${index * 0.1}s` }}
+          >
+            <div className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center mb-4`}>
+              <Icon className={card.color} size={20} />
+            </div>
+            <p className="text-gray-500 text-xs uppercase tracking-widest mb-2">{card.title}</p>
+            <h3 className={`text-2xl font-black ${card.color} break-words leading-tight`}>
+              {values[card.key]}
+            </h3>
           </div>
-
-          <p className="text-gray-400">
-            {item.title}
-          </p>
-
-          <h2 className={`text-3xl font-black mt-4 ${item.color}`}>
-            {item.value}
-          </h2>
-
-        </div>
-
-      ))}
-
+        );
+      })}
     </div>
   );
 }

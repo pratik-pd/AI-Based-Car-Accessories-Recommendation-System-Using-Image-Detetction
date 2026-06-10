@@ -1,131 +1,86 @@
 import { useNavigate } from "react-router-dom";
-import { Star } from "lucide-react";
+import { Star, ShoppingCart, Sparkles } from "lucide-react";
 
 function Accessories({ recommendations }) {
-
   const navigate = useNavigate();
 
-  if (!recommendations || recommendations.length === 0) {
-    return null;
-  }
+  if (!recommendations || recommendations.length === 0) return null;
 
   return (
+    <div className="mt-8 animate-fade-in-up">
 
-    <div className="mt-20">
+      {/* SECTION HEADER */}
+      <div className="text-center mb-10">
+        <div className="inline-flex items-center gap-2 badge-orange mb-4">
+          <Sparkles size={13} />
+          <span>AI Recommendations</span>
+        </div>
+        <h2 className="text-4xl font-black text-white">
+          Recommended{" "}
+          <span className="gradient-text-orange">Accessories</span>
+        </h2>
+        <p className="text-gray-400 mt-3 max-w-2xl mx-auto text-sm">
+          These accessories were selected by AI based on your vehicle's damage type and inspection results.
+        </p>
+      </div>
 
-      <h1 className="text-5xl font-black text-center text-white mb-12">
-        Recommended Accessories
-      </h1>
-
-      <p className="text-center text-gray-400 mb-12 max-w-2xl mx-auto">
-        AI selected these accessories based on your vehicle analysis
-        and driving requirements.
-      </p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-
+      {/* PRODUCT GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {recommendations.map((item, index) => (
-
           <div
             key={index}
-            className="
-              bg-[#161616]
-              border
-              border-gray-800
-              rounded-[30px]
-              overflow-hidden
-              hover:border-orange-500
-              hover:-translate-y-3
-              transition-all
-              duration-500
-              shadow-lg
-            "
+            className="group card-premium border border-white/6 overflow-hidden animate-fade-in-up"
+            style={{ animationDelay: `${index * 0.1}s` }}
           >
-
             {/* IMAGE */}
-
-            <div className="overflow-hidden">
-
+            <div className="relative overflow-hidden h-52">
               <img
                 src={item.image}
                 alt={item.name}
-                className="
-                  w-full
-                  h-56
-                  object-cover
-                  hover:scale-110
-                  transition
-                  duration-700
-                "
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
+              {/* RATING BADGE */}
+              <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-xl border border-yellow-500/30">
+                <Star size={12} className="text-yellow-400 fill-yellow-400" />
+                <span className="text-yellow-400 text-xs font-bold">{item.rating || "4.5"}</span>
+              </div>
+
+              {/* PRICE BADGE */}
+              <div className="absolute bottom-3 left-3 bg-orange-500 px-3 py-1 rounded-xl">
+                <span className="text-white font-black text-sm">{item.price}</span>
+              </div>
             </div>
 
             {/* CONTENT */}
-
             <div className="p-6">
-
-              <h2 className="text-white text-2xl font-bold min-h-[60px]">
+              <h3 className="text-white font-bold text-lg leading-snug min-h-[50px] line-clamp-2">
                 {item.name}
-              </h2>
-
-              <p className="text-orange-500 text-3xl font-black mt-4">
-                {item.price}
-              </p>
-
-              <div className="flex items-center gap-2 mt-3">
-
-                <Star
-                  size={18}
-                  className="text-yellow-400 fill-yellow-400"
-                />
-
-                <span className="text-yellow-400 font-semibold">
-                  {item.rating || "4.5"}
-                </span>
-
-              </div>
+              </h3>
 
               {item.description && (
-
-                <p className="text-gray-400 mt-4 text-sm line-clamp-3">
+                <p className="text-gray-500 text-sm mt-3 leading-relaxed line-clamp-2">
                   {item.description}
                 </p>
-
               )}
 
+              {/* BUTTON */}
               <button
-                onClick={() =>
-                  navigate("/product", {
-                    state: item,
-                  })
-                }
-                className="
-                  w-full
-                  mt-6
-                  bg-orange-500
-                  hover:bg-orange-600
-                  py-3
-                  rounded-2xl
-                  font-bold
-                  text-white
-                  transition-all
-                  duration-300
-                "
+                id={`accessory-btn-${index}`}
+                onClick={() => navigate("/product", { state: item })}
+                className="w-full mt-5 btn-primary flex items-center justify-center gap-2 py-3 text-sm"
               >
+                <ShoppingCart size={16} />
                 View Details
               </button>
-
             </div>
 
           </div>
-
         ))}
-
       </div>
 
     </div>
-
   );
 }
 

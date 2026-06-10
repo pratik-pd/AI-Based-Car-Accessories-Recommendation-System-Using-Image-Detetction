@@ -1,112 +1,166 @@
 import { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import { Mail, Lock, User, UserPlus, Car, Eye, EyeOff } from "lucide-react";
 
 function Signup() {
-
   const navigate = useNavigate();
-
   const [name, setName] = useState("");
-
   const [email, setEmail] = useState("");
-
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const registerUser = async () => {
-
+    if (!name || !email || !password) {
+      setError("Please fill in all fields.");
+      return;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
     try {
-
-      const response = await axios.post(
-        "http://127.0.0.1:5000/signup",
-        {
-          name,
-          email,
-          password,
-        }
-      );
-
-      console.log(response.data);
-
+      setLoading(true);
+      setError("");
+      const response = await axios.post("http://127.0.0.1:5000/signup", { name, email, password });
       if (!response.data.success) {
-
-        alert(response.data.message);
-
+        setError(response.data.message);
+        setLoading(false);
         return;
       }
-
-      alert("Account Created Successfully");
-
       navigate("/");
-      // window.location.href = "/";
-
-    } catch (error) {
-
-      console.log(error);
-
-      alert("Registration Failed");
+    } catch (err) {
+      setError("Registration Failed. Please try again.");
     }
+    setLoading(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") registerUser();
   };
 
   return (
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center px-4 relative overflow-hidden">
 
-    <div className="min-h-screen bg-black flex justify-center items-center px-4">
+      {/* ANIMATED BACKGROUND ORBS */}
+      <div className="absolute top-[-100px] right-[-100px] w-[450px] h-[450px] rounded-full bg-orange-500/10 blur-[120px] animate-pulse" />
+      <div className="absolute bottom-[-100px] left-[-100px] w-[400px] h-[400px] rounded-full bg-purple-800/8 blur-[100px] animate-pulse" style={{ animationDelay: "1.5s" }} />
 
-      <div className="bg-[#161616] border border-gray-800 p-10 rounded-[30px] w-full max-w-[450px]">
+      {/* CARD */}
+      <div className="relative z-10 w-full max-w-[440px] animate-fade-in-up">
 
-        <h1 className="text-4xl font-black text-white text-center">
-          Create Account
-        </h1>
+        {/* BRAND */}
+        <div className="text-center mb-8 animate-fade-in-down">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl glass-orange mb-4 animate-float">
+            <Car className="text-orange-400" size={30} />
+          </div>
+          <h1 className="text-3xl font-black text-white">AI Vehicle Analyzer</h1>
+          <p className="text-gray-500 text-sm mt-1">Create your free account</p>
+        </div>
 
-        <p className="text-gray-400 text-center mt-3">
-          Signup to continue
-        </p>
+        {/* FORM CARD */}
+        <div className="glass rounded-[28px] p-8 border border-white/8 shadow-2xl">
 
-        {/* NAME */}
-        <input
-          type="text"
-          placeholder="Enter Name"
-          className="w-full mt-8 bg-[#222] text-white p-4 rounded-2xl outline-none"
-          onChange={(e) => setName(e.target.value)}
-        />
+          <h2 className="text-2xl font-black text-white mb-1">Create Account</h2>
+          <p className="text-gray-400 text-sm mb-8">Join the AI inspection platform</p>
 
-        {/* EMAIL */}
-        <input
-          type="email"
-          placeholder="Enter Email"
-          className="w-full mt-5 bg-[#222] text-white p-4 rounded-2xl outline-none"
-          onChange={(e) => setEmail(e.target.value)}
-        />
+          {/* ERROR */}
+          {error && (
+            <div className="mb-5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm animate-fade-in flex items-center gap-2">
+              <span className="text-red-500">⚠</span> {error}
+            </div>
+          )}
 
-        {/* PASSWORD */}
-        <input
-          type="password"
-          placeholder="Enter Password"
-          className="w-full mt-5 bg-[#222] text-white p-4 rounded-2xl outline-none"
-          onChange={(e) => setPassword(e.target.value)}
-        />
+          {/* NAME */}
+          <div className="relative mb-4">
+            <User className="absolute left-0.5 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+            <input
+              id="signup-name"
+              type="text"
+              placeholder="Full Name"
+              className="input-premium pl-11"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
+          </div>
 
-        {/* BUTTON */}
-        <button
-          onClick={registerUser}
-          className="w-full mt-7 bg-orange-500 hover:bg-orange-600 transition-all duration-300 py-4 rounded-2xl text-white font-bold"
-        >
-          Create Account
-        </button>
+          {/* EMAIL */}
+          <div className="relative mb-4">
+            <Mail className="absolute left-0.5 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+            <input
+              id="signup-email"
+              type="email"
+              placeholder="Email address"
+              className="input-premium pl-11"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
+          </div>
 
-        {/* LOGIN LINK */}
-        <p className="text-gray-400 text-center mt-6">
+          {/* PASSWORD */}
+          <div className="relative mb-6">
+            <Lock className="absolute left-0.5 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+            <input
+              id="signup-password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Password (min. 6 chars)"
+              className="input-premium pl-11 pr-11"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-orange-400 transition"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
 
-          Already have account?
-
-          <Link
-            to="/"
-            className="text-orange-500 ml-2 font-bold"
+          {/* REGISTER BUTTON */}
+          <button
+            id="signup-btn"
+            onClick={registerUser}
+            disabled={loading}
+            className="w-full btn-primary flex items-center justify-center gap-3 text-base"
           >
-            Login
-          </Link>
+            {loading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Creating Account...
+              </>
+            ) : (
+              <>
+                <UserPlus size={20} />
+                Create Account
+              </>
+            )}
+          </button>
 
+          {/* DIVIDER */}
+          <div className="flex items-center gap-4 my-6">
+            <div className="flex-1 h-px bg-white/10" />
+            <span className="text-gray-600 text-xs">Already have one?</span>
+            <div className="flex-1 h-px bg-white/10" />
+          </div>
+
+          <p className="text-center text-gray-400 text-sm">
+            Already have an account?{" "}
+            <Link to="/" className="text-orange-400 font-bold hover:text-orange-300 transition">
+              Sign In →
+            </Link>
+          </p>
+
+        </div>
+
+        <p className="text-center text-gray-600 text-xs mt-6">
+          © 2026 AI Vehicle Damage Analyzer · MCA Major Project
         </p>
-
       </div>
 
     </div>

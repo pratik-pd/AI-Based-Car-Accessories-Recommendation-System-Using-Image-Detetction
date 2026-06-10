@@ -53,6 +53,203 @@ damage_classes = [
     "tire_flat"
 ]
 
+# =================================
+# DYNAMIC ACCESSORY RECOMMENDATIONS
+# =================================
+ACCESSORIES_RECOMMENDATIONS = {
+    "dent": [
+        {
+            "id": 1,
+            "name": "Car Dent Puller Kit",
+            "price": "₹1,499",
+            "rating": 4.2,
+            "image": "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e",
+            "description": "Professional-grade suction cup dent puller, ideal for removing dents from car doors and bumpers."
+        },
+        {
+            "id": 2,
+            "name": "Body Repair Filler Paste",
+            "price": "₹399",
+            "rating": 4.1,
+            "image": "https://images.unsplash.com/photo-1507136566006-cfc505b114fc",
+            "description": "Easy-to-use filler paste for minor scratches, dents, and surface imperfections."
+        },
+        {
+            "id": 3,
+            "name": "Paint Touch-Up Brush Kit",
+            "price": "₹499",
+            "rating": 4.3,
+            "image": "https://images.unsplash.com/photo-1563720223185-11003d516935",
+            "description": "Color-matching paint applicator brush to cover metal surfaces after dent extraction."
+        }
+    ],
+    "scratch": [
+        {
+            "id": 1,
+            "name": "Premium Scratch Remover Polish",
+            "price": "₹349",
+            "rating": 4.5,
+            "image": "https://images.unsplash.com/photo-1607860108855-64acf2078ed9",
+            "description": "Advanced compound that easily removes light scratches, swirls, and paint transfer from your vehicle's finish."
+        },
+        {
+            "id": 2,
+            "name": "Car Ceramic Coating Kit",
+            "price": "₹1,999",
+            "rating": 4.6,
+            "image": "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2",
+            "description": "Provides a high-gloss protective shield for your paint to prevent future minor scratches."
+        },
+        {
+            "id": 3,
+            "name": "Microfiber Cleaning Towels Pack",
+            "price": "₹299",
+            "rating": 4.7,
+            "image": "https://images.unsplash.com/photo-1528190336454-13cd56b45b5a",
+            "description": "Ultra-soft microfiber towels to apply scratch removers and polish without leaving swirls."
+        }
+    ],
+    "crack": [
+        {
+            "id": 1,
+            "name": "Heavy Duty Plastic Bumper Adhesive",
+            "price": "₹599",
+            "rating": 4.3,
+            "image": "https://images.unsplash.com/photo-1486006920555-c77dce18193b",
+            "description": "High-strength structural epoxy adhesive designed specifically for repairs on bumpers and body panels."
+        },
+        {
+            "id": 2,
+            "name": "Carbon Fiber Style Vinyl Wrap",
+            "price": "₹450",
+            "rating": 4.2,
+            "image": "https://images.unsplash.com/photo-1549399542-7e3f8b79c341",
+            "description": "Durable and weather-proof vinyl wrap to cover and reinforce cracked body panels."
+        },
+        {
+            "id": 3,
+            "name": "Universal Bumper Guard Protectors",
+            "price": "₹799",
+            "rating": 4.4,
+            "image": "https://images.unsplash.com/photo-1511919884226-fd3cad34687c",
+            "description": "Set of rubber guards to mount over bumper corners, masking small cracks and preventing future impacts."
+        }
+    ],
+    "glass_shatter": [
+        {
+            "id": 1,
+            "name": "Windshield Glass Repair Resin Kit",
+            "price": "₹399",
+            "rating": 4.4,
+            "image": "https://images.unsplash.com/photo-1506015391300-4802dc74de2e",
+            "description": "Fills windshield chips and bulls-eye cracks to restore visibility and stop cracks from spreading."
+        },
+        {
+            "id": 2,
+            "name": "Windshield Safety Protective Film",
+            "price": "₹1,299",
+            "rating": 4.1,
+            "image": "https://images.unsplash.com/photo-1503376780353-7e6692767b70",
+            "description": "Ultra-clear exterior windshield film that absorbs road hazard impacts and keeps shattered glass intact."
+        },
+        {
+            "id": 3,
+            "name": "Foldable Car Windshield Sun Shade",
+            "price": "₹399",
+            "rating": 4.3,
+            "image": "https://images.unsplash.com/photo-1552519507-da3b142c6e3d",
+            "description": "Reduces cabin heat and UV rays, preventing thermal expansion from worsening glass cracks."
+        }
+    ],
+    "lamp_broken": [
+        {
+            "id": 1,
+            "name": "Replacement LED Headlight Bulbs",
+            "price": "₹1,899",
+            "rating": 4.6,
+            "image": "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7",
+            "description": "Bright energy-efficient LED bulbs to replace damaged headlight cores and restore nocturnal safety."
+        },
+        {
+            "id": 2,
+            "name": "Headlight Clear Polish & Restoration Kit",
+            "price": "₹399",
+            "rating": 4.5,
+            "image": "https://images.unsplash.com/photo-1553440569-bcc63803a83d",
+            "description": "Restores dull, yellowed, and hazy headlights to brand-new clarity."
+        },
+        {
+            "id": 3,
+            "name": "Smoke Headlight Tint Protective Film",
+            "price": "₹299",
+            "rating": 4.2,
+            "image": "https://images.unsplash.com/photo-1580273916550-e323be2ae537",
+            "description": "Self-adhesive protective film wrap that shields headlights and taillights from stones and gravel."
+        }
+    ],
+    "tire_flat": [
+        {
+            "id": 1,
+            "name": "Portable Digital Tire Inflator",
+            "price": "₹2,499",
+            "rating": 4.8,
+            "image": "https://images.unsplash.com/photo-1580273916550-e323be2ae537",
+            "description": "12V DC portable air compressor with auto shut-off, ideal for filling flat tires in emergencies."
+        },
+        {
+            "id": 2,
+            "name": "Heavy Duty Tubeless Tire Repair Kit",
+            "price": "₹299",
+            "rating": 4.6,
+            "image": "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e",
+            "description": "Includes high-quality T-handle tools and self-vulcanizing plugs to patch tire punctures on the go."
+        },
+        {
+            "id": 3,
+            "name": "Digital Tire Pressure Gauge",
+            "price": "₹499",
+            "rating": 4.5,
+            "image": "https://images.unsplash.com/photo-1552519507-da3b142c6e3d",
+            "description": "Precise digital gauge to regularly check and maintain correct tire pressure for safety."
+        }
+    ]
+}
+
+GENERAL_RECOMMENDATIONS = [
+    {
+        "id": 1,
+        "name": "Premium Leather Seat Covers Set",
+        "price": "₹2,999",
+        "rating": 4.8,
+        "image": "https://images.unsplash.com/photo-1502877338535-766e1452684a",
+        "description": "High-quality leatherette seat covers custom-tailored for maximum comfort and styling."
+    },
+    {
+        "id": 2,
+        "name": "Android Infotainment Display",
+        "price": "₹8,999",
+        "rating": 4.7,
+        "image": "https://images.unsplash.com/photo-1502877338535-766e1452684a",
+        "description": "High-definition touchscreen display with GPS navigation, Bluetooth, and Apple CarPlay/Android Auto support."
+    },
+    {
+        "id": 3,
+        "name": "Dual Lens Full HD Car Dashcam",
+        "price": "₹3,499",
+        "rating": 4.6,
+        "image": "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b",
+        "description": "Dual-channel dashcam capturing front and rear footage with high-definition night vision."
+    },
+    {
+        "id": 4,
+        "name": "Luxury 7D Custom Floor Mats",
+        "price": "₹1,999",
+        "rating": 4.5,
+        "image": "https://images.unsplash.com/photo-1504215680853-026ed2a45def",
+        "description": "All-weather water-proof luxury styling floor mats with diamond stitching."
+    }
+]
+
 # =========================
 # HOME ROUTE
 # =========================
@@ -191,8 +388,8 @@ def predict():
             io.BytesIO(img_bytes)
         )
 
-        # YOLO Prediction
-        results = model(image)
+        # YOLO Prediction with optimized confidence threshold and image size
+        results = model(image, conf=0.25, imgsz=640)
 
         #Create static folder if missing
         os.makedirs("static", exist_ok=True)
@@ -346,6 +543,11 @@ Professional inspection is recommended before repair decisions are made.
 
 
         # ======================
+        # DYNAMIC RECOMMENDATIONS MAPPING
+        # ======================
+        recommendations = ACCESSORIES_RECOMMENDATIONS.get(prediction, GENERAL_RECOMMENDATIONS)
+
+        # ======================
         # SAVE REPORT TO DB
         # ======================
 
@@ -364,6 +566,8 @@ Professional inspection is recommended before repair decisions are made.
         "vehicle_health": vehicle_health,
 
         "replacement_needed": replacement_needed,
+
+        "recommendations": recommendations,
 
         "prediction_image":
         f"http://127.0.0.1:5000/static/{filename}",
@@ -399,6 +603,8 @@ Professional inspection is recommended before repair decisions are made.
             "ai_insights": ai_insights,
 
             "all_detections": detections,
+
+            "recommendations": recommendations,
 
             "prediction_image": f"http://127.0.0.1:5000/static/{filename}",
         })
@@ -544,6 +750,9 @@ def get_history(user_id):
 
                 "replacement_needed":
                 report.get("replacement_needed"),
+
+                "recommendations":
+                report.get("recommendations", []),
 
                 "prediction_image":
                 report.get("prediction_image")

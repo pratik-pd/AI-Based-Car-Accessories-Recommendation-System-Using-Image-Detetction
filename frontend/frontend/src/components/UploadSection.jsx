@@ -1,188 +1,170 @@
-import { Upload, Sparkles, ImageIcon } from "lucide-react";
+import { Upload, Sparkles, ImageIcon, Camera } from "lucide-react";
+import { useState } from "react"
 
 function UploadSection({
-handleImage,
-preview,
-analyzeCar,
-loading,
-predictionImage,
+  handleImage,
+  preview,
+  analyzeCar,
+  loading,
+  predictionImage,
 }) {
-return (
-<>
-{/* HEADER */} <div className="text-center"> <div className="flex justify-center items-center gap-3 mb-4"> <Sparkles
-         className="text-orange-500"
-         size={36}
-       />
+
+  const [dragging, setDragging] = useState(false);
+
+  // this is drag and drop logic
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setDragging(true)
+  };
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragging(false);
+
+    const droppedFile = e.dataTransfer.files[0];
+
+    if (droppedFile) {
+      handleImage({ target: { files: [droppedFile] } });
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragging(false);
+  };
 
 
-      <h1 className="text-4xl md:text-5xl font-black text-white">
-        AI Vehicle Inspection
-      </h1>
-    </div>
 
-    <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-      Upload a vehicle image and receive an
-      AI-powered inspection report including
-      vehicle health, damage analysis,
-      maintenance suggestions and smart
-      recommendations.
-    </p>
-  </div>
+  return (
+    <>
+      {/* UPLOAD DROP ZONE */}
+      <div className="mt-2">
+        <label
+          id="upload-zone"
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          className={`group relative border-2 border-dashed rounded-[24px] p-12 flex flex-col justify-center items-center cursor-pointer transition-all duration-300 ${dragging ? "border-orange-500 bg-orange-500/10 scale-[1.02]" : "border-orange-500/40"}`}
+        // className="group relative border-2 border-dashed border-orange-500/40 hover:border-orange-500 rounded-[24px] p-12 flex flex-col justify-center items-center cursor-pointer transition-all duration-400 bg-gradient-to-b from-orange-500/3 to-transparent hover:bg-orange-500/5 hover:shadow-[0_0_40px_rgba(249,115,22,0.1)]"
+        >
+          {/* CORNER ACCENTS */}
+          <div className="absolute top-3 left-3 w-5 h-5 border-t-2 border-l-2 border-orange-500/60 rounded-tl-lg" />
+          <div className="absolute top-3 right-3 w-5 h-5 border-t-2 border-r-2 border-orange-500/60 rounded-tr-lg" />
+          <div className="absolute bottom-3 left-3 w-5 h-5 border-b-2 border-l-2 border-orange-500/60 rounded-bl-lg" />
+          <div className="absolute bottom-3 right-3 w-5 h-5 border-b-2 border-r-2 border-orange-500/60 rounded-br-lg" />
 
-  {/* UPLOAD BOX */}
-  <div className="mt-12">
-    <label
-      className="
-      group
-      border-2
-      border-dashed
-      border-orange-500/60
-      hover:border-orange-500
-      rounded-[30px]
-      p-12
-      flex
-      flex-col
-      justify-center
-      items-center
-      cursor-pointer
-      transition-all
-      duration-300
-      bg-gradient-to-b
-      from-[#171717]
-      to-[#0f0f0f]
-      hover:scale-[1.01]
-    "
-    >
-      <Upload
-        className="
-        text-orange-500
-        mb-5
-        group-hover:scale-110
-        transition
-      "
-        size={60}
-      />
+          {/* ICON */}
+          <div className="w-20 h-20 rounded-2xl glass-orange flex items-center justify-center mb-6 group-hover:scale-110 group-hover:glow-orange transition-all duration-500">
+            <Upload className="text-orange-400" size={36} />
+          </div>
 
-      <h3 className="text-2xl font-bold text-white">
-        Upload Vehicle Image
-      </h3>
+          <h3 className="text-2xl font-bold text-white mb-2">Upload Vehicle Image</h3>
+          <p className="text-gray-400 text-center leading-relaxed">
+            Drag & Drop your vehicle image here
+            <br />
+            <span className="text-gray-500">or click to browse files</span>
+          </p>
+          <div className="flex items-center gap-3 mt-4 text-xs text-gray-600">
+            <span className="flex items-center gap-1"><Camera size={11} /> JPG</span>
+            <span>·</span>
+            <span>PNG</span>
+            <span>·</span>
+            <span>JPEG</span>
+            <span>·</span>
+            <span>Max 10MB</span>
+          </div>
 
-      <p className="text-gray-400 mt-3">
-        Drag & Drop Vehicle Image
-        <br />
-        or click to browse
-      </p>
-
-      <p className="text-sm text-gray-500 mt-2">
-        JPG, PNG, JPEG • Max 10MB
-      </p>
-
-      <input
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleImage}
-      />
-    </label>
-  </div>
-
-  {/* ORIGINAL IMAGE */}
-  {preview && (
-    <div className="mt-10">
-      <div className="flex items-center gap-2 mb-4">
-        <ImageIcon
-          size={22}
-          className="text-orange-500"
-        />
-
-        <h3 className="text-xl font-bold text-white">
-          Uploaded Image
-        </h3>
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImage}
+          />
+        </label>
       </div>
 
-      <img
-        src={preview}
-        alt="preview"
-        className="
-        w-full
-        max-h-[550px]
-        object-cover
-        rounded-[30px]
-        border
-        border-gray-800
-        shadow-2xl
-      "
-      />
-    </div>
-  )}
+      {/* PREVIEW IMAGES */}
+      {(preview || predictionImage) && (
+        <div className={`mt-8 grid ${preview && predictionImage ? "md:grid-cols-2" : "grid-cols-1"} gap-6`}>
 
-  {/* AI PREDICTION IMAGE WITH BOXES */}
-  {predictionImage && (
-    <div className="mt-10">
-      <div className="flex items-center gap-2 mb-4">
-        <Sparkles
-          size={22}
-          className="text-green-400"
-        />
+          {/* ORIGINAL IMAGE */}
+          {preview && (
+            <div className="animate-fade-in">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-2 h-2 rounded-full bg-blue-400" />
+                <ImageIcon size={16} className="text-blue-400" />
+                <h3 className="text-sm font-bold text-blue-400 uppercase tracking-widest">Original Image</h3>
+              </div>
+              <div className="relative rounded-2xl overflow-hidden border border-blue-500/20">
+                <img
+                  src={preview}
+                  alt="preview"
+                  className="w-full max-h-[420px] object-cover"
+                />
+              </div>
+            </div>
+          )}
 
-        <h3 className="text-xl font-bold text-white">
-          AI Damage Detection
-        </h3>
-      </div>
+          {/* AI PREDICTION IMAGE */}
+          {predictionImage && (
+            <div className="animate-fade-in">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-2 h-2 rounded-full bg-green-400 animate-ping" />
+                <Sparkles size={16} className="text-green-400" />
+                <h3 className="text-sm font-bold text-green-400 uppercase tracking-widest">AI Detection Result</h3>
+              </div>
+              <div className="relative rounded-2xl overflow-hidden border border-green-500/40 glow-green">
+                <img
+                  src={`${predictionImage}?t=${Date.now()}`}
+                  alt="AI Detection"
+                  className="w-full max-h-[420px] object-cover"
+                />
+                <div className="absolute top-3 right-3 badge-green text-[10px]">✓ Analyzed</div>
+              </div>
+            </div>
+          )}
 
-      <img
-        src={`${predictionImage}?t=${Date.now()}`}
-        alt="prediction"
-        className="
-        w-full
-        rounded-[30px]
-        border
-        border-green-500
-        shadow-2xl
-      "
-      />
-    </div>
-  )}
+        </div>
+      )}
 
-  {/* ANALYZE BUTTON */}
-  <button
-    onClick={analyzeCar}
-    disabled={loading}
-    className={`
-      w-full
-      mt-8
-      py-5
-      rounded-2xl
-      text-xl
-      font-bold
-      transition-all
-      duration-300
-      ${
-        loading
-          ? "bg-gray-700 cursor-not-allowed"
-          : "bg-gradient-to-r from-orange-500 to-orange-600 hover:scale-[1.01]"
-      }
-    `}
-  >
-    {loading
-      ? "Analyzing Vehicle..."
-      : "Analyze Vehicle 🚗"}
-  </button>
+      {/* ANALYZE BUTTON */}
+      <button
+        id="analyze-btn"
+        onClick={analyzeCar}
+        disabled={loading}
+        className={`w-full mt-8 py-5 rounded-2xl text-lg font-bold transition-all duration-400 flex items-center justify-center gap-3 ${loading
+            ? "bg-gray-800 text-gray-500 cursor-not-allowed"
+            : "btn-primary text-white"
+          }`}
+      >
+        {loading ? (
+          <>
+            <div className="w-6 h-6 border-2 border-gray-600 border-t-orange-400 rounded-full animate-spin" />
+            <span>AI Analyzing Vehicle...</span>
+          </>
+        ) : (
+          <>
+            <Sparkles size={22} />
+            <span>Analyze Vehicle with AI</span>
+          </>
+        )}
+      </button>
 
-  {/* LOADER */}
-  {loading && (
-    <div className="text-center mt-10">
-      <div className="w-16 h-16 border-4 border-gray-700 border-t-orange-500 rounded-full animate-spin mx-auto"></div>
-
-      <p className="text-orange-400 mt-4">
-        AI Processing Vehicle Image...
-      </p>
-    </div>
-  )}
-</>
-
-
-);
+      {/* LOADER OVERLAY */}
+      {loading && (
+        <div className="mt-8 glass rounded-2xl p-6 text-center animate-fade-in">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="w-12 h-12 border-2 border-gray-700 border-t-orange-500 rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-gray-700 border-t-yellow-400 rounded-full animate-spin" style={{ animationDirection: "reverse", animationDuration: "0.7s" }} />
+            <div className="w-6 h-6 border-2 border-gray-700 border-t-green-400 rounded-full animate-spin" style={{ animationDuration: "0.5s" }} />
+          </div>
+          <p className="text-orange-400 font-semibold">YOLOv8 Processing Image...</p>
+          <p className="text-gray-500 text-sm mt-1">Detecting damage types and analyzing vehicle health</p>
+          <div className="mt-4 w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-orange-500 to-yellow-400 rounded-full animate-[shimmer_1.5s_linear_infinite] w-2/3" />
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
 export default UploadSection;

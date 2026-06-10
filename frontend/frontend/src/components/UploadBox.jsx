@@ -1,6 +1,5 @@
 import { useState } from "react";
 import axios from "axios";
-
 import UploadSection from "./UploadSection";
 import ResultCard from "./ResultCard";
 import AnalyticsCards from "./AnalyticsCards";
@@ -8,348 +7,188 @@ import AIReport from "./AIReport";
 import AISummary from "./AISummary";
 import AIInsights from "./AIInsights";
 import Accessories from "./Accessories";
+import { CheckCircle, AlertCircle, Clock, Download, Mail } from "lucide-react";
 
 function UploadBox() {
-const [file, setFile] = useState(null);
-const [preview, setPreview] = useState(null);
+  const [file, setFile]                     = useState(null);
+  const [preview, setPreview]               = useState(null);
+  const [loading, setLoading]               = useState(false);
+  const [error, setError]                   = useState("");
+  const [scanStatus, setScanStatus]         = useState("");
+  const [analysisTime, setAnalysisTime]     = useState("");
+  const [prediction, setPrediction]         = useState("");
+  const [confidence, setConfidence]         = useState("");
+  const [recommendations, setRecommendations] = useState([]);
+  const [brand, setBrand]                   = useState("");
+  const [damageLevel, setDamageLevel]       = useState("");
+  const [replacementNeeded, setReplacementNeeded] = useState("");
+  const [aiSummary, setAiSummary]           = useState("");
+  const [vehicleHealth, setVehicleHealth]   = useState("");
+  const [repairCost, setRepairCost]         = useState("");
+  const [aiInsights, setAiInsights]         = useState([]);
+  const [allDetections, setAllDetections]   = useState([]);
+  const [predictionImage, setPredictionImage] = useState("");
 
-const [loading, setLoading] = useState(false);
-const [error, setError] = useState("");
+  const handleImage = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setPreview(URL.createObjectURL(selectedFile));
+      setPrediction(""); setConfidence(""); setRecommendations([]);
+      setAllDetections([]); setError(""); setScanStatus("");
+    }
+  };
 
-const [scanStatus, setScanStatus] = useState("");
-const [analysisTime, setAnalysisTime] = useState("");
-
-const [prediction, setPrediction] = useState("");
-const [confidence, setConfidence] = useState("");
-
-const [recommendations, setRecommendations] = useState([]);
-
-const [brand, setBrand] = useState("");
-
-const [damageLevel, setDamageLevel] = useState("");
-const [replacementNeeded, setReplacementNeeded] = useState("");
-
-const [aiSummary, setAiSummary] = useState("");
-const [vehicleHealth, setVehicleHealth] = useState("");
-const [repairCost, setRepairCost] = useState("");
-const [aiInsights, setAiInsights] = useState([]);
-
-const [allDetections, setAllDetections] = useState([]);
-const [predictionImage, setPredictionImage] = useState("");
-
-const handleImage = (e) => {
-const selectedFile = e.target.files[0];
-
-
-if (selectedFile) {
-  setFile(selectedFile);
-  setPreview(URL.createObjectURL(selectedFile));
-
-  setPrediction("");
-  setConfidence("");
-  setRecommendations([]);
-  setAllDetections([]);
-  setError("");
-}
-
-
-};
-
-const analyzeCar = async () => {
-if (!file) {
-setError("Please upload an image first.");
-return;
-}
-
-
-setLoading(true);
-setError("");
-
-const formData = new FormData();
-formData.append("image", file);
-
-formData.append("user_id", localStorage.getItem("user_id"));
-
-try {
-  setScanStatus("Uploading Image...");
-
-  const response = await axios.post(
-    "http://127.0.0.1:5000/predict",
-    formData
-  );
-
-  if (!response.data.success) {
-    setError(response.data.message);
+  const analyzeCar = async () => {
+    if (!file) { setError("Please upload a vehicle image first."); return; }
+    setLoading(true); setError("");
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("user_id", localStorage.getItem("user_id"));
+    try {
+      setScanStatus("Uploading Image...");
+      const response = await axios.post("http://127.0.0.1:5000/predict", formData);
+      if (!response.data.success) { setError(response.data.message); setLoading(false); return; }
+      setScanStatus("Generating AI Report...");
+      const d = response.data;
+      setPrediction(d.prediction || "Unknown");
+      setConfidence(d.confidence || 95);
+      setBrand(d.brand);
+      setAllDetections(d.all_detections || []);
+      setDamageLevel(d.damage_level);
+      setReplacementNeeded(d.replacement_needed);
+      setAiSummary(d.ai_summary);
+      setVehicleHealth(d.vehicle_health);
+      setRepairCost(d.repair_cost);
+      setAiInsights(d.ai_insights || []);
+      setAnalysisTime(new Date().toLocaleString());
+      setPredictionImage(d.prediction_image);
+      setRecommendations(d.recommendations || []);
+      setScanStatus("Analysis Completed");
+    } catch (err) {
+      setError("Failed to connect to AI server. Make sure the backend is running.");
+      setScanStatus("");
+    }
     setLoading(false);
-    return;
-  }
+  };
 
-  setScanStatus("Generating AI Report...");
+  const downloadReport = async () => {
+    try {
+      const response = await axios.post("http://127.0.0.1:5000/generate-report", {
+        prediction, confidence, damageLevel, vehicleHealth, repairCost, replacementNeeded,
+      });
+      const link = document.createElement("a");
+      link.href = response.data.pdf_url;
+      link.download = "AI_Damage_Report.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch { alert("Failed to generate PDF"); }
+  };
 
-  const aiPrediction =
-    response.data.prediction || "Unknown";
+  const sendEmailReport = async () => {
+    const email = prompt("Enter your email address:");
+    if (!email) return;
+    try {
+      const response = await axios.post("http://127.0.0.1:5000/send-report-email", { email });
+      alert(response.data.message);
+    } catch { alert("Failed to send email"); }
+  };
 
-  const aiConfidence =
-    response.data.confidence || 95;
+  return (
+    <div className="w-full max-w-[1200px] mx-auto px-4">
 
-  setPrediction(aiPrediction);
-  setConfidence(aiConfidence);
-
-  setBrand(response.data.brand);
-
-  setAllDetections(
-    response.data.all_detections || []
-  );
-
-  setDamageLevel(
-    response.data.damage_level
-  );
-
-  setReplacementNeeded(
-    response.data.replacement_needed
-  );
-
-  setAiSummary(
-    response.data.ai_summary
-  );
-
-  setVehicleHealth(
-    response.data.vehicle_health
-  );
-
-  setRepairCost(
-    response.data.repair_cost
-  );
-
-  setAiInsights(
-    response.data.ai_insights || []
-  );
-
-  setAnalysisTime(
-    new Date().toLocaleString()
-  );
-
-  setPredictionImage(
-    response.data.prediction_image 
-  );
-
-  let accessories = [];
-
-  accessories = [
-    {
-      id: 1,
-      name: "Premium Leather Seat Cover",
-      price: 2999,
-      rating: 4.8,
-      image: "/products/seatcover.jpg",
-    },
-    {
-      id: 2,
-      name: "Android Display",
-      price: 8999,
-      rating: 4.8,
-      image:
-        "https://images.unsplash.com/photo-1502877338535-766e1452684a",
-    },
-    {
-      id: 3,
-      name: "Reverse Camera",
-      price: 2499,
-      rating: 4.4,
-      image:
-        "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b",
-    },
-    {
-      id: 4,
-      name: "Luxury Floor Mats",
-      price: 1999,
-      rating: 4.3,
-      image:
-        "https://images.unsplash.com/photo-1504215680853-026ed2a45def",
-    },
-  ];
-
-  setRecommendations(accessories);
-
-  setScanStatus("Analysis Completed");
-} catch (error) {
-  console.log(error);
-
-  setError(
-    "Failed to connect with AI server."
-  );
-
-  setScanStatus("");
-}
-
-setLoading(false);
-
-
-};
-
-
-// DOWNLOAD PDF REPORT
-
-const downloadReport = async () => {
-  try {
-
-    const response = await axios.post(
-      "http://127.0.0.1:5000/generate-report",
-      {
-        prediction,
-        confidence,
-        damageLevel,
-        vehicleHealth,
-        repairCost,
-        replacementNeeded,
-      }
-    );
-
-    const link = document.createElement("a");
-
-    link.href = response.data.pdf_url;
-
-    link.download = "AI_Damage_Report.pdf";
-
-    document.body.appendChild(link);
-
-    link.click();
-
-    document.body.removeChild(link);
-
-  } catch (error) {
-
-    console.log(error);
-
-    alert("Failed to generate PDF");
-
-  }
-};
-
-const sendEmailReport = async () => {
-
-  const email = prompt("Enter Email Address");
-
-  if (!email) return;
-
-  try {
-    const response = await axios.post(
-      "http://127.0.0.1:5000/send-report-email",
-      {
-        email,
-      }
-    );
-    alert(response.data.message);
-  } catch (error) {
-    console.log(error);
-    alert("Failed to send email");
-  }
-};
-
-return ( <div className="w-full max-w-[1400px] mx-auto mt-10 px-4"> <div className="bg-[#111111] border border-gray-800 rounded-[30px] p-8 shadow-2xl">
-
-
-    <UploadSection
-      handleImage={handleImage}
-      preview={preview}
-      analyzeCar={analyzeCar}
-      loading={loading}
-      predictionImage={predictionImage}
-    />
-
-    {scanStatus && (
-      <div className="mt-4 text-center text-orange-400 font-medium">
-        {scanStatus}
-      </div>
-    )}
-
-    {error && (
-      <div className="mt-4 bg-red-500/10 border border-red-500 text-red-400 p-4 rounded-xl text-center">
-        {error}
-      </div>
-    )}
-
-    {analysisTime && (
-      <div className="mt-4 text-center text-gray-400 text-sm">
-        Last Analysis: {analysisTime}
-      </div>
-    )}
-
-    {prediction && (
-      <>
-        <ResultCard
-          prediction={prediction}
-          confidence={confidence}
-          allDetections={allDetections}
-        />
-       
-
-        <AnalyticsCards
-          repairCost={repairCost}
-          vehicleHealth={vehicleHealth}
-          brand={brand}
-          confidence={confidence}
+      {/* MAIN CARD */}
+      <div className="glass rounded-[28px] p-8 border border-white/7 shadow-2xl">
+        <UploadSection
+          handleImage={handleImage}
+          preview={preview}
+          analyzeCar={analyzeCar}
+          loading={loading}
+          predictionImage={predictionImage}
         />
 
-        <AISummary
-          aiSummary={aiSummary}
-        />
+        {/* SCAN STATUS */}
+        {scanStatus && !loading && (
+          <div className={`mt-5 flex items-center justify-center gap-3 px-5 py-3 rounded-xl text-sm font-semibold animate-fade-in ${
+            scanStatus === "Analysis Completed"
+              ? "bg-green-500/10 border border-green-500/30 text-green-400"
+              : "bg-orange-500/10 border border-orange-500/30 text-orange-400"
+          }`}>
+            {scanStatus === "Analysis Completed"
+              ? <CheckCircle size={16} />
+              : <div className="w-4 h-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
+            }
+            {scanStatus}
+          </div>
+        )}
 
-        <AIInsights
-          aiInsights={aiInsights}
-        />
+        {/* ERROR */}
+        {error && (
+          <div className="mt-5 flex items-start gap-3 px-5 py-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm animate-fade-in">
+            <AlertCircle size={18} className="mt-0.5 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
-        <AIReport
-          damageLevel={damageLevel}
-          replacementNeeded={
-            replacementNeeded
-          }
-        />
-
-      <div className="mt-8 text-center">
-        <button
-         onClick={downloadReport}
-          className="
-          px-8
-          py-4
-          rounded-2xl
-        bg-green-600
-        hover:bg-green-700
-          font-bold
-          transition
-          "
-        >
-       Download AI Report PDF
-        </button>
+        {/* ANALYSIS TIME */}
+        {analysisTime && (
+          <div className="mt-4 flex items-center justify-center gap-2 text-gray-500 text-xs">
+            <Clock size={12} />
+            Last Analysis: {analysisTime}
+          </div>
+        )}
       </div>
 
-       <button
-        onClick={sendEmailReport}
-        className="
-        ml-4
-        px-8
-        py-4
-        rounded-2xl
-      bg-blue-600
-      hover:bg-blue-700
-        font-bold
-        "
-       >
-       Email Report
-      </button>
+      {/* RESULTS SECTION */}
+      {prediction && (
+        <div className="animate-fade-in-up mt-6 space-y-6">
 
-        <Accessories
-          recommendations={
-            recommendations
-          }
-        />
-      </>
-    )}
-  </div>
-</div>
+          <ResultCard
+            prediction={prediction}
+            confidence={confidence}
+            allDetections={allDetections}
+          />
 
+          <AnalyticsCards
+            repairCost={repairCost}
+            vehicleHealth={vehicleHealth}
+            brand={brand}
+            confidence={confidence}
+          />
 
-);
+          <AISummary aiSummary={aiSummary} />
+          <AIInsights aiInsights={aiInsights} />
+          <AIReport damageLevel={damageLevel} replacementNeeded={replacementNeeded} />
+
+          {/* ACTION BUTTONS */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
+            <button
+              id="download-report-btn"
+              onClick={downloadReport}
+              className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-green-500/10 border border-green-500/30 text-green-400 font-bold hover:bg-green-500/20 hover:border-green-500/60 transition-all duration-300 hover:-translate-y-1"
+            >
+              <Download size={20} />
+              Download PDF Report
+            </button>
+
+            <button
+              id="email-report-btn"
+              onClick={sendEmailReport}
+              className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-blue-400 font-bold hover:bg-blue-500/20 hover:border-blue-500/60 transition-all duration-300 hover:-translate-y-1"
+            >
+              <Mail size={20} />
+              Email Report
+            </button>
+          </div>
+
+          <Accessories recommendations={recommendations} />
+
+        </div>
+      )}
+
+    </div>
+  );
 }
 
 export default UploadBox;

@@ -1,23 +1,30 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { ArrowLeft, Star, ShoppingCart, CheckCircle, Sparkles, Shield, Truck, RotateCcw, Award } from "lucide-react";
+import Navbar from "../components/Navbar";
+
+const perks = [
+  { icon: Shield, text: "1 Year Warranty" },
+  { icon: Award, text: "Genuine Product Guarantee" },
+  { icon: Truck, text: "Free Delivery Across India" },
+  { icon: RotateCcw, text: "Easy 30-Day Return Policy" },
+  { icon: CheckCircle, text: "Quality Tested & Certified" },
+];
 
 function ProductDetails() {
-
   const location = useLocation();
   const navigate = useNavigate();
-
   const product = location.state;
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-black flex flex-col justify-center items-center text-white">
-        <h1 className="text-4xl font-black">
-          Product Not Found
-        </h1>
-
-        <button
-          onClick={() => navigate("/home")}
-          className="mt-6 bg-orange-500 hover:bg-orange-600 px-6 py-3 rounded-2xl font-bold"
-        >
+      <div className="min-h-screen bg-[#050505] flex flex-col justify-center items-center text-white">
+        <div className="w-16 h-16 rounded-2xl glass-orange flex items-center justify-center mb-6 animate-float">
+          <ShoppingCart className="text-orange-400" size={28} />
+        </div>
+        <h1 className="text-4xl font-black text-white mb-3">Product Not Found</h1>
+        <p className="text-gray-400 mb-8">This product no longer exists or was not loaded correctly.</p>
+        <button onClick={() => navigate(-1)} className="btn-primary flex items-center gap-2">
+          <ArrowLeft size={18} />
           Go Back
         </button>
       </div>
@@ -25,118 +32,126 @@ function ProductDetails() {
   }
 
   const addToCart = () => {
-
-    const existingCart =
-      JSON.parse(localStorage.getItem("cart")) || [];
-
-    const alreadyExists = existingCart.find(
-      (item) => item.name === product.name
-    );
-
+    const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
+    const alreadyExists = existingCart.find((item) => item.name === product.name);
     if (alreadyExists) {
-      alert("Product already added to cart");
+      alert("This product is already in your cart.");
       return;
     }
-
     existingCart.push(product);
-
-    localStorage.setItem(
-      "cart",
-      JSON.stringify(existingCart)
-    );
-
-    alert("Added To Cart Successfully");
+    localStorage.setItem("cart", JSON.stringify(existingCart));
+    window.dispatchEvent(new Event("storage"));
+    navigate("/cart");
   };
 
   return (
+    <div className="min-h-screen bg-[#050505] text-white">
+      <Navbar />
 
-    <div className="min-h-screen bg-black text-white p-6 md:p-10">
+      <div className="max-w-6xl mx-auto px-6 pt-32 pb-20">
 
-      <div className="max-w-7xl mx-auto">
-
+        {/* BACK BUTTON */}
         <button
-          onClick={() => navigate("/home")}
-          className="mb-8 bg-[#1a1a1a] hover:bg-[#222] px-5 py-3 rounded-xl"
+          onClick={() => navigate(-1)}
+          className="mb-8 flex items-center gap-2 text-gray-400 hover:text-orange-400 transition-all duration-300 group animate-fade-in"
         >
-          ← Back
+          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+          Back to results
         </button>
 
-        <div className="grid md:grid-cols-2 gap-10 items-center">
+        <div className="grid md:grid-cols-2 gap-12 items-start animate-fade-in-up">
 
-          {/* IMAGE */}
+          {/* IMAGE COLUMN */}
+          <div className="sticky top-28">
+            <div className="relative rounded-[28px] overflow-hidden border border-white/8 shadow-2xl group">
+              <img
+                src={product.image}
+                alt={product.name}
+                className="w-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
-          <div>
-
-            <img
-              src={product.image}
-              alt={product.name}
-              className="w-full rounded-3xl object-cover border border-gray-800"
-            />
-
+              {/* AI BADGE */}
+              <div className="absolute top-4 left-4 badge-orange flex items-center gap-1.5">
+                <Sparkles size={12} />
+                AI Recommended
+              </div>
+            </div>
           </div>
 
-          {/* DETAILS */}
-
+          {/* DETAILS COLUMN */}
           <div>
-
-            <span className="bg-orange-500/20 text-orange-500 px-4 py-2 rounded-full text-sm">
-              AI Recommended Product
-            </span>
-
-            <h1 className="text-4xl md:text-5xl font-black mt-5">
+            {/* PRODUCT NAME */}
+            <h1 className="text-4xl font-black text-white leading-tight mb-4">
               {product.name}
             </h1>
 
-            <p className="text-orange-500 text-4xl font-black mt-6">
-              {product.price}
-            </p>
-
-            <p className="text-yellow-400 text-lg mt-3">
-              ⭐ {product.rating || "4.8"}
-            </p>
-
-            <div className="mt-8 space-y-4 text-gray-300">
-
-              <p>✅ 1 Year Warranty</p>
-
-              <p>✅ Genuine Product Guarantee</p>
-
-              <p>✅ Free Delivery Across India</p>
-
-              <p>✅ Easy Return Policy</p>
-
-              <p>✅ Quality Tested Product</p>
-
+            {/* RATING */}
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    size={18}
+                    className={i < Math.round(product.rating || 4.5) ? "text-yellow-400 fill-yellow-400" : "text-gray-600"}
+                  />
+                ))}
+              </div>
+              <span className="text-yellow-400 font-bold">{product.rating || "4.5"}</span>
+              <span className="text-gray-500 text-sm">/ 5.0</span>
             </div>
 
-            <div className="mt-10 bg-[#161616] border border-gray-800 rounded-3xl p-6">
+            {/* PRICE */}
+            <div className="glass rounded-2xl p-5 border border-orange-500/20 mb-8">
+              <p className="text-gray-500 text-xs uppercase tracking-widest mb-1">Price</p>
+              <p className="text-5xl font-black gradient-text-orange">{product.price}</p>
+              <p className="text-gray-500 text-xs mt-2">Inclusive of all taxes · Free shipping</p>
+            </div>
 
-              <h3 className="text-2xl font-bold mb-4">
+            {/* PERKS */}
+            <div className="space-y-3 mb-8">
+              {perks.map((perk, i) => {
+                const Icon = perk.icon;
+                return (
+                  <div key={i} className="flex items-center gap-3 text-sm text-gray-300">
+                    <div className="w-7 h-7 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center">
+                      <Icon size={13} className="text-green-400" />
+                    </div>
+                    {perk.text}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* DESCRIPTION */}
+            <div className="glass rounded-[20px] p-6 border border-white/7 mb-8">
+              <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                <Shield size={16} className="text-orange-400" />
                 Product Description
               </h3>
-
-              <p className="text-gray-400 leading-relaxed">
-
-                {product.description ||
-                  "Premium quality vehicle accessory recommended by our AI analysis engine. Designed to improve comfort, safety and driving experience."}
-
+              <p className="text-gray-400 leading-relaxed text-sm">
+                {product.description || "Premium quality vehicle accessory recommended by our AI analysis engine. Designed to improve comfort, safety, and driving experience."}
               </p>
-
             </div>
 
+            {/* ADD TO CART BUTTON */}
             <button
+              id="add-to-cart-btn"
               onClick={addToCart}
-              className="mt-10 bg-orange-500 hover:bg-orange-600 transition-all duration-300 px-8 py-4 rounded-2xl font-bold text-lg"
+              className="w-full btn-primary flex items-center justify-center gap-3 py-5 text-lg"
             >
+              <ShoppingCart size={22} />
               Add To Cart
             </button>
 
+            <p className="text-gray-600 text-xs text-center mt-4">
+              🔒 Secure checkout · 30-day money back guarantee
+            </p>
           </div>
 
         </div>
 
       </div>
-
     </div>
   );
 }
