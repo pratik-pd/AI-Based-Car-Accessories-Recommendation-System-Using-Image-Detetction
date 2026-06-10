@@ -9,6 +9,14 @@ import DetectDamage from "./pages/DetectDamage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 
+// Admin imports
+import AdminLayout from "./components/AdminLayout";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminAccessories from "./pages/AdminAccessories";
+import AdminOrders from "./pages/AdminOrders";
+import AdminUsers from "./pages/AdminUsers";
+import AdminScans from "./pages/AdminScans";
+
 function App() {
   return (
     <Routes>
@@ -59,6 +67,15 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+      {/* Admin Panel Routes */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="accessories" element={<AdminAccessories />} />
+        <Route path="orders" element={<AdminOrders />} />
+        <Route path="users" element={<AdminUsers />} />
+        <Route path="scans" element={<AdminScans />} />
+      </Route>
     </Routes>
   );
 }

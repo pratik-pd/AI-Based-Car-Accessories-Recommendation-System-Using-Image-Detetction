@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Trash2, ShoppingCart, ArrowLeft, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import axios from "axios";
 
 function Cart() {
   const navigate = useNavigate();
@@ -23,6 +24,60 @@ function Cart() {
     const price = parseInt(String(item.price).replace("₹", "").replace(/,/g, "")) || 0;
     return total + price;
   }, 0);
+
+  const handlePayment = async () => {
+    try {
+      console.log(totalPrice)
+      const response = await axios.post(
+        "http://127.0.0.1:5000/create-order",
+        {
+          amount: totalPrice
+        }
+      );
+      console.log(response.data)
+      const order = response.data;
+
+      const options = {
+        key: "rzp_test_SzoFHt38620ZOw",
+        amount: order.amount,
+        currency: order.currency,
+        name: "AI VEHICLE DAMAGE ANALYZER",
+        description: "Vehicle Accessories Purchase",
+        order_id: order.id,
+
+        handler: async function (paymentResponse) {
+          try {
+            const userId = localStorage.getItem("user_id");
+            await axios.post("http://127.0.0.1:5000/verify-payment", {
+              order_id: order.id,
+              payment_id: paymentResponse.razorpay_payment_id,
+              user_id: userId,
+              amount: totalPrice,
+              items: cart
+            });
+            alert("Payment Successful & Order Logged!");
+            localStorage.removeItem("cart");
+            setCart([]);
+            window.dispatchEvent(new Event("storage"));
+          } catch (err) {
+            console.error("Order logging failed:", err);
+            alert("Payment succeeded, but could not log order in backend.");
+          }
+        },
+
+        theme: {
+          color: "#f97316"
+        }
+
+      };
+      const razorpay = new window.Razorpay(options);
+
+      razorpay.open();
+    } catch (error) {
+      console.log(error);
+      alert("Payment Failed");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#050505] text-white">
@@ -132,7 +187,7 @@ function Cart() {
                   </div>
                 </div>
 
-                <button className="w-full btn-primary flex items-center justify-center gap-2 py-4">
+                <button className="w-full btn-primary flex items-center justify-center gap-2 py-4" onClick={handlePayment}>
                   <ShoppingCart size={18} />
                   Proceed to Checkout
                 </button>

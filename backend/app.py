@@ -4,8 +4,17 @@ from flask_cors import CORS
 from ultralytics import YOLO
 from PIL import Image
 
-from db import (users_collection,reports_collection)
+from db import (users_collection, reports_collection, accessories_collection, orders_collection)
+from bson import ObjectId
 
+import razorpay
+
+client = razorpay.Client(
+    auth=(
+        "rzp_test_SzoFHt38620ZOw",
+        "QFopmOVf7BAlbyYFth4m820V"
+    )
+)
 import cv2
 import bcrypt
 import io
@@ -296,7 +305,9 @@ def signup():
         users_collection.insert_one({
             "name": name,
             "email": email,
-            "password": hashed_password
+            "password": hashed_password,
+            "role": "user",
+            "created_at": str(datetime.now())
         })
 
         return jsonify({
@@ -352,7 +363,8 @@ def login():
 
             "user": {
                 "name": user["name"],
-                "email": user["email"]
+                "email": user["email"],
+                "role": user.get("role", "user")
             }
         })
 
@@ -545,7 +557,20 @@ Professional inspection is recommended before repair decisions are made.
         # ======================
         # DYNAMIC RECOMMENDATIONS MAPPING
         # ======================
-        recommendations = ACCESSORIES_RECOMMENDATIONS.get(prediction, GENERAL_RECOMMENDATIONS)
+        db_recs = list(accessories_collection.find({"damage_type": prediction}))
+        if not db_recs:
+            db_recs = list(accessories_collection.find({"damage_type": "general"}))
+        
+        recommendations = []
+        for r in db_recs:
+            recommendations.append({
+                "id": str(r["_id"]),
+                "name": r["name"],
+                "price": r["price"],
+                "rating": r.get("rating", 4.0),
+                "image": r["image"],
+                "description": r["description"]
+            })
 
         # ======================
         # SAVE REPORT TO DB
@@ -933,11 +958,330 @@ def analytics(user_id):
             "success": False,
             "message": str(e)
         })
+
+#==========================
+# Create Order
+# =========================        
+
+@app.route("/create-order", methods=["POST"])
+def create_order():
+    try:
+        data = request.get_json()
+
+        print("Received Data:", data)
+
+        amount = int(data["amount"])
+
+        print("Amount Received:", amount)
+
+        order = client.order.create({
+            "amount": amount * 100,
+            "currency": "INR",
+            "payment_capture": 1
+        })
+
+        print("Order Created:", order)
+
+        return jsonify(order)
+
+    except Exception as e:
+        print("ERROR:", e)
+
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        }), 500
+# =================================
+# VERIFY PAYMENT & LOG ORDER
+# =================================
+@app.route("/verify-payment", methods=["POST"])
+def verify_payment():
+    try:
+        data = request.get_json()
+        print("Payment Verification Data:", data)
+        
+        order_id = data.get("order_id")
+        payment_id = data.get("payment_id")
+        user_id = data.get("user_id")
+        amount = data.get("amount")
+        items = data.get("items", [])
+        
+        user_email = "Unknown"
+        if user_id:
+            try:
+                user = users_collection.find_one({"_id": ObjectId(user_id)})
+                if user:
+                    user_email = user.get("email", "Unknown")
+            except Exception as e:
+                print("Error finding user:", e)
+                
+        order_doc = {
+            "order_id": order_id,
+            "payment_id": payment_id,
+            "user_id": user_id,
+            "user_email": user_email,
+            "amount": amount,
+            "items": items,
+            "status": "Paid",
+            "created_at": str(datetime.now())
+        }
+        
+        orders_collection.insert_one(order_doc)
+        print("Logged Order:", order_doc)
+        
+        return jsonify({
+            "success": True,
+            "message": "Payment verified and order successfully logged."
+        })
+    except Exception as e:
+        print("Error verifying payment:", e)
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        }), 500
+
+# =================================
+# ADMIN ENDPOINTS
+# =================================
+
+@app.route("/admin/stats", methods=["GET"])
+def admin_stats():
+    try:
+        total_users = users_collection.count_documents({})
+        total_scans = reports_collection.count_documents({})
+        total_orders = orders_collection.count_documents({})
+        total_accs = accessories_collection.count_documents({})
+        
+        orders = list(orders_collection.find({}))
+        total_revenue = sum(int(o.get("amount", 0)) for o in orders)
+        
+        reports = list(reports_collection.find({}))
+        avg_health = 0
+        if reports:
+            healths = []
+            for r in reports:
+                h = r.get("vehicle_health", "0%")
+                try:
+                    h_val = int(str(h).replace("%", ""))
+                    healths.append(h_val)
+                except ValueError:
+                    pass
+            if healths:
+                avg_health = round(sum(healths) / len(healths))
+                
+        damage_counter = {}
+        for r in reports:
+            dmg = r.get("prediction", "Unknown")
+            damage_counter[dmg] = damage_counter.get(dmg, 0) + 1
+        most_common_damage = max(damage_counter, key=damage_counter.get) if damage_counter else "None"
+        
+        damage_distribution = [{"name": k, "value": v} for k, v in damage_counter.items()]
+        
+        sales_by_date = {}
+        for o in orders:
+            created_at = o.get("created_at", "")
+            if created_at:
+                date_str = created_at.split(" ")[0]
+                try:
+                    dt = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S.%f")
+                    short_date = dt.strftime("%b %d")
+                except Exception:
+                    try:
+                        dt = datetime.strptime(date_str, "%Y-%m-%d")
+                        short_date = dt.strftime("%b %d")
+                    except Exception:
+                        short_date = date_str
+                sales_by_date[short_date] = sales_by_date.get(short_date, 0) + int(o.get("amount", 0))
+        
+        sales_timeline = [{"date": k, "revenue": v} for k, v in sales_by_date.items()]
+        sales_timeline = sorted(sales_timeline, key=lambda x: x["date"])[-7:]
+        
+        scans_by_date = {}
+        for r in reports:
+            created_at = r.get("created_at", "")
+            if created_at:
+                date_str = created_at.split(" ")[0]
+                try:
+                    dt = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S.%f")
+                    short_date = dt.strftime("%b %d")
+                except Exception:
+                    try:
+                        dt = datetime.strptime(date_str, "%Y-%m-%d")
+                        short_date = dt.strftime("%b %d")
+                    except Exception:
+                        short_date = date_str
+                scans_by_date[short_date] = scans_by_date.get(short_date, 0) + 1
+        
+        scans_timeline = [{"date": k, "scans": v} for k, v in scans_by_date.items()]
+        scans_timeline = sorted(scans_timeline, key=lambda x: x["date"])[-7:]
+
+        return jsonify({
+            "success": True,
+            "stats": {
+                "total_users": total_users,
+                "total_scans": total_scans,
+                "total_orders": total_orders,
+                "total_accessories": total_accs,
+                "total_revenue": total_revenue,
+                "avg_health": avg_health,
+                "most_common_damage": most_common_damage,
+                "damage_distribution": damage_distribution,
+                "sales_timeline": sales_timeline,
+                "scans_timeline": scans_timeline
+            }
+        })
+    except Exception as e:
+        print("Error getting admin stats:", e)
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/admin/users", methods=["GET"])
+def admin_users():
+    try:
+        users = list(users_collection.find({}))
+        user_list = []
+        for u in users:
+            user_list.append({
+                "id": str(u["_id"]),
+                "name": u.get("name"),
+                "email": u.get("email"),
+                "role": u.get("role", "user"),
+                "created_at": u.get("created_at", "N/A"),
+                "status": u.get("status", "active")
+            })
+        return jsonify({"success": True, "users": user_list})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/admin/users/<user_id>", methods=["PUT"])
+def admin_update_user(user_id):
+    try:
+        data = request.get_json()
+        update_fields = {}
+        if "role" in data:
+            update_fields["role"] = data["role"]
+        if "status" in data:
+            update_fields["status"] = data["status"]
             
+        users_collection.update_one({"_id": ObjectId(user_id)}, {"$set": update_fields})
+        return jsonify({"success": True, "message": "User updated successfully."})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/admin/scans", methods=["GET"])
+def admin_scans():
+    try:
+        reports = list(reports_collection.find({}).sort("_id", -1))
+        report_list = []
+        for r in reports:
+            user_email = "Unknown"
+            user_id = r.get("user_id")
+            if user_id:
+                try:
+                    user = users_collection.find_one({"_id": ObjectId(user_id)})
+                    if user:
+                        user_email = user.get("email", "Unknown")
+                except Exception:
+                    pass
+            
+            report_list.append({
+                "id": str(r["_id"]),
+                "user_id": user_id,
+                "user_email": user_email,
+                "prediction": r.get("prediction"),
+                "confidence": r.get("confidence"),
+                "damage_level": r.get("damage_level"),
+                "repair_cost": r.get("repair_cost"),
+                "vehicle_health": r.get("vehicle_health"),
+                "prediction_image": r.get("prediction_image"),
+                "created_at": r.get("created_at")
+            })
+        return jsonify({"success": True, "scans": report_list})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/admin/orders", methods=["GET"])
+def admin_orders():
+    try:
+        orders = list(orders_collection.find({}).sort("_id", -1))
+        order_list = []
+        for o in orders:
+            order_list.append({
+                "id": str(o["_id"]),
+                "order_id": o.get("order_id"),
+                "payment_id": o.get("payment_id"),
+                "user_email": o.get("user_email", "Unknown"),
+                "amount": o.get("amount"),
+                "items": o.get("items", []),
+                "status": o.get("status", "Paid"),
+                "created_at": o.get("created_at")
+            })
+        return jsonify({"success": True, "orders": order_list})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/admin/accessories", methods=["GET", "POST"])
+def admin_accessories():
+    if request.method == "GET":
+        try:
+            accs = list(accessories_collection.find({}))
+            acc_list = []
+            for a in accs:
+                acc_list.append({
+                    "id": str(a["_id"]),
+                    "damage_type": a.get("damage_type"),
+                    "name": a.get("name"),
+                    "price": a.get("price"),
+                    "rating": a.get("rating", 4.0),
+                    "image": a.get("image"),
+                    "description": a.get("description")
+                })
+            return jsonify({"success": True, "accessories": acc_list})
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
+            
+    elif request.method == "POST":
+        try:
+            data = request.get_json()
+            new_acc = {
+                "damage_type": data.get("damage_type"),
+                "name": data.get("name"),
+                "price": data.get("price"),
+                "rating": float(data.get("rating", 4.0)),
+                "image": data.get("image"),
+                "description": data.get("description")
+            }
+            accessories_collection.insert_one(new_acc)
+            return jsonify({"success": True, "message": "Accessory added successfully."})
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/admin/accessories/<acc_id>", methods=["PUT", "DELETE"])
+def admin_accessory_detail(acc_id):
+    if request.method == "PUT":
+        try:
+            data = request.get_json()
+            update_fields = {
+                "damage_type": data.get("damage_type"),
+                "name": data.get("name"),
+                "price": data.get("price"),
+                "rating": float(data.get("rating", 4.0)),
+                "image": data.get("image"),
+                "description": data.get("description")
+            }
+            accessories_collection.update_one({"_id": ObjectId(acc_id)}, {"$set": update_fields})
+            return jsonify({"success": True, "message": "Accessory updated successfully."})
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
+            
+    elif request.method == "DELETE":
+        try:
+            accessories_collection.delete_one({"_id": ObjectId(acc_id)})
+            return jsonify({"success": True, "message": "Accessory deleted successfully."})
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
 
 # =========================
 # RUN SERVER
 # =========================
 if __name__ == "__main__":
-
     app.run(debug=True)

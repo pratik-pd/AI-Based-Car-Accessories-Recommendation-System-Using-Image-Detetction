@@ -10,3 +10,7 @@ users_collection = db["users"]
 
 #New collection 
 reports_collection = db["reports"]
+
+# Admin collections
+accessories_collection = db["accessories"]
+orders_collection = db["orders"]

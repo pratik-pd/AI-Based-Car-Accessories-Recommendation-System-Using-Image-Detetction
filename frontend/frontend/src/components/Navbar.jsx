@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { ShoppingCart, LayoutDashboard, LogOut, Car, Scan } from "lucide-react";
+import { ShoppingCart, LayoutDashboard, LogOut, Car, Scan, Shield } from "lucide-react";
 import { useState, useEffect } from "react";
 
 function Navbar() {
@@ -31,6 +31,9 @@ function Navbar() {
   };
 
   const isActive = (path) => location.pathname === path;
+  
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const isAdmin = user?.user?.role === "admin";
 
   return (
     <nav
@@ -81,6 +84,20 @@ function Navbar() {
             <LayoutDashboard size={16} />
             Dashboard
           </button>
+
+          {isAdmin && (
+            <button
+              id="nav-admin-btn"
+              onClick={() => navigate("/admin/dashboard")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${location.pathname.startsWith("/admin")
+                  ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20"
+                  : "text-orange-400 border border-orange-500/20 hover:bg-orange-500/10"
+                }`}
+            >
+              <Shield size={16} />
+              Admin Panel
+            </button>
+          )}
         </div>
 
         {/* RIGHT ACTIONS */}
