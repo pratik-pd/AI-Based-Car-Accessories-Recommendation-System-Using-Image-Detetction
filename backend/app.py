@@ -19,13 +19,17 @@ import cv2
 import bcrypt
 import io
 import os
-from reportlab.platypus import(
+from reportlab.platypus import (
     SimpleDocTemplate,
     Paragraph,
     Spacer,
+    Image,
+    Table,
+    TableStyle
 )
-
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
 
 from datetime import datetime
 
@@ -656,83 +660,156 @@ def serve_static(filename):
 
 @app.route("/generate-report", methods=["POST"])
 def generate_report():
-
     try:
-
         data = request.json
+        print("PDF Gen Payload:", data)
 
         os.makedirs("static", exist_ok=True)
 
-        pdf_file = "static/vehicle_report.pdf"
+        # Unique filename using timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"vehicle_report_{timestamp}.pdf"
+        pdf_file = f"static/{filename}"
 
-        doc = SimpleDocTemplate(pdf_file)
+        # Setup SimpleDocTemplate
+        doc = SimpleDocTemplate(
+            pdf_file,
+            pagesize=letter,
+            rightMargin=36,
+            leftMargin=36,
+            topMargin=36,
+            bottomMargin=36
+        )
 
         styles = getSampleStyleSheet()
+        
+        # Styles definition
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=22,
+            textColor=colors.HexColor("#f97316"),
+            spaceAfter=4,
+            alignment=1  # Center
+        )
+        
+        subtitle_style = ParagraphStyle(
+            'CustomSubtitle',
+            parent=styles['Normal'],
+            fontSize=10,
+            textColor=colors.HexColor("#4b5563"),
+            spaceAfter=20,
+            alignment=1  # Center
+        )
+
+        section_heading = ParagraphStyle(
+            'SectionHeading',
+            parent=styles['Heading2'],
+            fontSize=13,
+            textColor=colors.HexColor("#1e1b4b"),
+            spaceBefore=15,
+            spaceAfter=8,
+            fontName="Helvetica-Bold"
+        )
+
+        cell_style = ParagraphStyle(
+            'TableCell',
+            parent=styles['Normal'],
+            fontSize=9.5,
+            textColor=colors.HexColor("#374151"),
+            leading=13
+        )
+
+        cell_bold_style = ParagraphStyle(
+            'TableCellBold',
+            parent=styles['Normal'],
+            fontSize=9.5,
+            textColor=colors.HexColor("#111827"),
+            fontName="Helvetica-Bold",
+            leading=13
+        )
+
+        header_cell_style = ParagraphStyle(
+            'HeaderCell',
+            parent=styles['Normal'],
+            fontSize=10,
+            textColor=colors.white,
+            fontName="Helvetica-Bold",
+            alignment=0
+        )
+
+        disclaimer_style = ParagraphStyle(
+            'Disclaimer',
+            parent=styles['Normal'],
+            fontSize=7.5,
+            textColor=colors.HexColor("#9ca3af"),
+            alignment=1,
+            leading=10,
+            spaceBefore=25
+        )
 
         content = []
 
-        content.append(
-            Paragraph(
-                "AI Vehicle Damage Report",
-                styles["Title"]
-            )
-        )
+        # 1. Header Title
+        content.append(Paragraph("AI VEHICLE INSPECTION CERTIFICATE", title_style))
+        content.append(Paragraph(f"Date of Analysis: {datetime.now().strftime('%Y-%m-%d %I:%M %p')} | Powered by YOLOv8 Intelligence", subtitle_style))
+        content.append(Spacer(1, 5))
 
-        content.append(Spacer(1, 20))
+        # 2. Diagnostic Summary Table
+        content.append(Paragraph("DIAGNOSTIC REPORT SUMMARY", section_heading))
+        
+        table_data = [
+            [Paragraph("Diagnostic Parameter", header_cell_style), Paragraph("AI Analysis Findings", header_cell_style)],
+            [Paragraph("Detected Damage Type", cell_bold_style), Paragraph(str(data.get('prediction', 'Unknown')).upper(), cell_style)],
+            [Paragraph("Detection Confidence", cell_bold_style), Paragraph(f"{data.get('confidence', 'N/A')}%", cell_style)],
+            [Paragraph("Damage Severity Level", cell_bold_style), Paragraph(str(data.get('damageLevel', 'N/A')).upper(), cell_style)],
+            [Paragraph("Estimated Vehicle Health", cell_bold_style), Paragraph(str(data.get('vehicleHealth', 'N/A')), cell_style)],
+            [Paragraph("Estimated Repair Cost", cell_bold_style), Paragraph(str(data.get('repairCost', 'N/A')), cell_style)],
+            [Paragraph("Replacement Required", cell_bold_style), Paragraph(str(data.get('replacementNeeded', 'N/A')).upper(), cell_style)]
+        ]
 
-        content.append(
-            Paragraph(
-                f"Detected Damage: {data['prediction']}",
-                styles["Normal"]
-            )
-        )
+        t = Table(table_data, colWidths=[220, 320])
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#f97316")),
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('BOTTOMPADDING', (0,0), (-1,0), 6),
+            ('TOPPADDING', (0,0), (-1,0), 6),
+            ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.HexColor("#f9fafb"), colors.white]),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#e5e7eb")),
+            ('PADDING', (0,0), (-1,-1), 8),
+        ]))
+        content.append(t)
+        content.append(Spacer(1, 15))
 
-        content.append(
-            Paragraph(
-                f"Confidence: {data['confidence']}",
-                styles["Normal"]
-            )
-        )
+        # 3. Image Section
+        prediction_image_url = data.get("predictionImage")
+        if prediction_image_url:
+            img_filename = prediction_image_url.split("/")[-1]
+            local_img_path = f"static/{img_filename}"
+            
+            if os.path.exists(local_img_path):
+                content.append(Paragraph("VISUAL ANALYSIS DETAILS (AI ANNOTATED)", section_heading))
+                try:
+                    img_flowable = Image(local_img_path, width=360, height=225)
+                    img_flowable.hAlign = 'CENTER'
+                    content.append(img_flowable)
+                except Exception as img_err:
+                    print("Error rendering image in PDF:", img_err)
+                    content.append(Paragraph(f"[Image rendering failed: {str(img_err)}]", cell_style))
 
-        content.append(
-            Paragraph(
-                f"Damage Level: {data['damageLevel']}",
-                styles["Normal"]
-            )
-        )
-
-        content.append(
-            Paragraph(
-                f"Vehicle Health: {data['vehicleHealth']}",
-                styles["Normal"]
-            )
-        )
-
-        content.append(
-            Paragraph(
-                f"Repair Cost: {data['repairCost']}",
-                styles["Normal"]
-            )
-        )
-
-        content.append(
-            Paragraph(
-                f"Replacement Needed: {data['replacementNeeded']}",
-                styles["Normal"]
-            )
-        )
+        # 4. Disclaimer Notes
+        content.append(Paragraph("DISCLAIMER: This diagnostic report is generated using computerized YOLOv8 computer vision object detection algorithms. The structural estimations, health indexes, and repair costs are calculations based on generic averages and visual evaluations. A professional mechanical or structural vehicle check is strongly recommended before any financial or repair commitments.", disclaimer_style))
 
         doc.build(content)
 
         return jsonify({
             "success": True,
-            "pdf_url":
-            "http://127.0.0.1:5000/static/vehicle_report.pdf"
+            "pdf_url": f"http://127.0.0.1:5000/static/{filename}"
         })
-    
 
     except Exception as e:
-
+        print("Error generating report:", e)
         return jsonify({
             "success": False,
             "message": str(e)
@@ -813,7 +890,12 @@ def send_report_email():
 
         receiver_email = data["email"]
 
-        pdf_path = "static/vehicle_report.pdf"
+        pdf_url = data.get("pdf_url")
+        if pdf_url:
+            pdf_filename = pdf_url.split("/")[-1]
+            pdf_path = f"static/{pdf_filename}"
+        else:
+            pdf_path = "static/vehicle_report.pdf"
 
         msg = MIMEMultipart()
 

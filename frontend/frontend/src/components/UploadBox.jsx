@@ -75,24 +75,54 @@ function UploadBox() {
   const downloadReport = async () => {
     try {
       const response = await axios.post("http://127.0.0.1:5000/generate-report", {
-        prediction, confidence, damageLevel, vehicleHealth, repairCost, replacementNeeded,
+        prediction,
+        confidence,
+        damageLevel,
+        vehicleHealth,
+        repairCost,
+        replacementNeeded,
+        predictionImage,
       });
       const link = document.createElement("a");
       link.href = response.data.pdf_url;
-      link.download = "AI_Damage_Report.pdf";
+      link.download = `AI_Damage_Report_${Date.now()}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch { alert("Failed to generate PDF"); }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to generate PDF");
+    }
   };
 
   const sendEmailReport = async () => {
     const email = prompt("Enter your email address:");
     if (!email) return;
     try {
-      const response = await axios.post("http://127.0.0.1:5000/send-report-email", { email });
-      alert(response.data.message);
-    } catch { alert("Failed to send email"); }
+      // First generate/refresh the report to make sure it contains the correct image and data
+      const reportRes = await axios.post("http://127.0.0.1:5000/generate-report", {
+        prediction,
+        confidence,
+        damageLevel,
+        vehicleHealth,
+        repairCost,
+        replacementNeeded,
+        predictionImage,
+      });
+
+      if (reportRes.data.success) {
+        const response = await axios.post("http://127.0.0.1:5000/send-report-email", {
+          email,
+          pdf_url: reportRes.data.pdf_url,
+        });
+        alert(response.data.message);
+      } else {
+        alert("Failed to generate report for email: " + reportRes.data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to send email");
+    }
   };
 
   return (
